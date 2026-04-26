@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Scan - افضل سكانر جوال</title>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    
+    <style>
+        :root { 
+            --main-blue: #3b82f6; 
+            --dark-bg: #0a0a0a; 
+            --nav-bg: #1a1a1a; /* لون خلفية القائمة */
+        }
+        body {
+            background-color: #111; color: white; margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6; overflow-x: hidden;
+            padding-bottom: 100px; /* مسافة عشان القائمة متغطيش على المحتوى */
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .hero { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, #0a0a0a 0%, #111 100%); }
+        .logo { width: 100px; margin-bottom: 15px; }
+        .badge { background: #4ade80; color: black; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block; }
+        
+        h1 { color: var(--main-blue); font-size: 32px; margin: 10px 0; }
+        .feature-card {
+            background: #1a1a1a; border-right: 4px solid var(--main-blue);
+            padding: 15px; margin: 15px 0; border-radius: 8px;
+        }
+        .step { display: flex; align-items: flex-start; margin-bottom: 20px; gap: 15px; }
+        .step-num { background: var(--main-blue); min-width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+        
+        .cta-box {
+            text-align: center; margin-top: 40px; padding: 30px;
+            background: rgba(59, 130, 246, 0.1); border-radius: 20px; border: 1px dashed var(--main-blue);
+        }
+        .btn-primary {
+            background: var(--main-blue); color: white; padding: 15px 40px;
+            border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 20px;
+            display: inline-block; transition: 0.3s; box-shadow: 0 5px 15px rgba(59,130,246,0.4);
+        }
+        .btn-secondary { color: #aaa; text-decoration: underline; display: block; margin-top: 15px; font-size: 14px; }
+        img { max-width: 100%; border-radius: 10px; }
+
+        /* --- كود الـ Magic Navigation الجديد --- */
+        .navigation-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 70px;
+            background: var(--nav-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .navigation-container ul {
+            display: flex;
+            width: 350px;
+            padding: 0;
+            margin: 0;
+        }
+        .navigation-container ul li {
+            position: relative;
+            list-style: none;
+            width: 70px;
+            height: 70px;
+            z-index: 1;
+        }
+        .navigation-container ul li a {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            text-align: center;
+        }
+        .navigation-container ul li a .icon {
+            position: relative;
+            display: block;
+            line-height: 75px;
+            font-size: 1.5em;
+            transition: 0.5s;
+            color: #fff;
+        }
+        .navigation-container ul li.active a .icon {
+            transform: translateY(-32px);
+            color: var(--main-blue);
+        }
+        /* شكل الدائرة المتحركة (Indicator) */
+        .indicator {
+            position: absolute;
+            top: -50%;
+            width: 70px;
+            height: 70px;
+            background: #111; /* نفس لون خلفية الصفحة */
+            border-radius: 50%;
+            border: 6px solid #111;
+            transition: 0.5s;
+        }
+        .indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-right-radius: 20px;
+            box-shadow: 1px -10px 0 0 #111;
+        }
+        .indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -22px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-left-radius: 20px;
+            box-shadow: -1px -10px 0 0 #111;
+        }
+
+        /* تحريك الـ Indicator بناءً على العنصر النشط */
+        .navigation-container ul li:nth-child(1).active ~ .indicator { transform: translateX(calc(70px * 0)); }
+        .navigation-container ul li:nth-child(2).active ~ .indicator { transform: translateX(calc(70px * 1)); }
+        .navigation-container ul li:nth-child(3).active ~ .indicator { transform: translateX(calc(70px * 2)); }
+        .navigation-container ul li:nth-child(4).active ~ .indicator { transform: translateX(calc(70px * 3)); }
+        .navigation-container ul li:nth-child(5).active ~ .indicator { transform: translateX(calc(70px * 4)); }
+
+        /* موبايل ريسبونسيف */
+        @media (max-width: 420px) {
+            .navigation-container { width: 95%; bottom: 10px; }
+            .navigation-container ul { width: 100%; justify-content: space-around; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <img src="logo.png" alt="Just Scan Logo" class="logo">
+        <div class="badge">🎁 متاح الآن: 7 أيام تجربة مجانية بالكامل</div>
+        <h1>حول موبايلك لسكانر احترافي</h1>
+        <p>الأداة الأسرع لقراءة وارسال الباركود، حفظ الفواتير،ادارة مبيعاتك ومشترياتك بسهولة.</p>
+    </div>
+
+    <div class="container">
+        
+        <h3>🚀 ميزات Just Scan</h3>
+        <div class="feature-card">
+            <b>⚡ سرعة البرق:</b> اعمل سكان لاي باركود والصنف هيتسجل في اقل من ثانية.
+        </div>
+        <div class="feature-card">
+            <b>📁 تنظيم ذكي:</b> تقدر تحفظ لحد 10 فواتير حتى لو جهازك مشغول او فاصل وترجع تسجلهم في اي وقت.
+        </div>
+        <div class="feature-card">
+            <b>⌨️ أزرار تحكم:</b> تقدر تضيف زراير اوامر زي shift و f1 و f2 و ctrl واي زرار اوامر على حسب نوع التطبيق.
+        </div>
+        <div class="feature-card">
+            <b>💻 متاح لكل الأجهزة:</b> يعمل بكفاءة عالية على الموبايل وعلى أجهزة الكمبيوتر (Desktop).
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+
+        <h3>🛠️ طريقة التثبيت والاستخدام</h3>
+        
+        <div class="step">
+            <div class="step-num">1</div>
+            <div>
+                <b>التحميل:</b> حمل نسخة الموبايل من الرابط وسجل بياناتك واعمل انشاء حساب.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div>
+                <b>نسخة الكمبيوتر:</b> حمل نسخة الكمبيوتر وافتح حسابك.. التطبيق هيشتغل في الخلفية وهينفذ الأوامر تلقائياً بمجرد عمل سكان من الموبايل.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div>
+                <b>التفعيل:</b> افتح التطبيق وابدأ المسح الضوئي فوراً، كل المميزات مفتوحة لك مجاناً لأول أسبوع.
+            </div>
+        </div>
+
+        <div class="cta-box">
+            <h2>جرب التطبيق الآن مجاناً!</h2>
+            <p>لا تحتاج لإضافة بطاقة بنكية، حمل وابدأ فوراً.</p>
+            <a href="https://drive.google.com/drive/folders/1-86kpUVIE84WWXuRzJV-CAzo-6EPecGz" class="btn-primary">تحميل Just Scan</a>
+            <a href="prices.html" class="btn-secondary">مشاهدة خطط الأسعار بعد الفترة التجريبية</a>
+        </div>
+
+    </div>
+
+    <footer style="text-align: center; padding: 40px; color: #555; font-size: 12px;">
+        جميع الحقوق محفوظة لـ Just Scan &copy; 2026
+    </footer>
+
+    <div class="navigation-container">
+        <ul>
+            <li class="list active">
+                <a href="#">
+                    <span class="icon"><ion-icon name="home-outline"></ion-icon></span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="https://drive.google.com/drive/folders/1-86kpUVIE84WWXuRzJV-CAzo-6EPecGz">
+                    <span class="icon"><ion-icon name="cloud-download-outline"></ion-icon></span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="#">
+                    <span class="icon"><ion-icon name="scan-outline"></ion-icon></span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="prices.html">
+                    <span class="icon"><ion-icon name="card-outline"></ion-icon></span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="#">
+                    <span class="icon"><ion-icon name="settings-outline"></ion-icon></span>
+                </a>
+            </li>
+            <div class="indicator"></div>
+        </ul>
+    </div>
+
+    <script>
+        // كود تحريك الأيقونات عند الضغط
+        const list = document.querySelectorAll('.list');
+        function activeLink() {
+            list.forEach((item) => item.classList.remove('active'));
+            this.classList.add('active');
+        }
+        list.forEach((item) => item.addEventListener('click', activeLink));
+    </script>
+
+</body>
+</html>
