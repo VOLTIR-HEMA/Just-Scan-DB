@@ -481,519 +481,124 @@
                     await addDoc(collection(db, "shortages"), {
                         name: val,
                         demand_count: 1,
-                        last_requested: new Date        .profile-avatar {
-            width: 45px;
-            height: 45px;
-            background-color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #0f52ba;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+                        last_requested: new Date()
+                    });
+                }
+                drugInput.value = '';
+                alert('تم تسجيل النقص وتحديث العداد بنجاح!');
+            } catch(e) { alert('خطأ في الحفظ: ' + e.message); }
+        };
 
-        .profile-info h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .profile-info p {
-            margin: 2px 0 0 0;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        /* Budget Card / Progress Bar */
-        .budget-card {
-            background: #fff;
-            margin: 15px;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .budget-title {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .progress-container {
-            background-color: #eef2f5;
-            border-radius: 8px;
-            height: 12px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            background: linear-gradient(90deg, #ff9900, #ff5500);
-            height: 100%;
-            width: 65%; /* Dummy dynamic width */
-            border-radius: 8px;
-        }
-
-        .budget-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .stat-spent { color: #ff5500; }
-        .stat-left { color: #2ecc71; }
-
-        /* Main Container for Pages */
-        .page-content {
-            padding: 0 15px;
-        }
-
-        .app-section {
-            display: none;
-        }
-
-        .app-section.active {
-            display: block;
-        }
-
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .form-input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccd6dd;
-            border-radius: 8px;
-            font-size: 14px;
-            background-color: #fff;
-            outline: none;
-            transition: border 0.2s;
-        }
-
-        .form-input:focus, select:focus {
-            border-color: #0f52ba;
-        }
-
-        .btn {
-            background-color: #0f52ba;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #1e3c72;
-        }
-
-        /* Autocomplete Box */
-        .autocomplete-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1px solid #ccd6dd;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            font-size: 13px;
-            border-bottom: 1px solid #f0f4f7;
-        }
-
-        .suggestion-item:hover {
-            background-color: #f0f4f7;
-        }
-
-        .suggestion-add-new {
-            background-color: #fff9e6;
-            color: #b77c00;
-            font-weight: bold;
-        }
-
-        /* Lists & Cards styling */
-        .data-list {
-            margin-top: 15px;
-        }
-
-        .card-item {
-            background: #fff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-details h4 {
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            color: #2c3e50;
-        }
-
-        .card-details p {
-            margin: 0;
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-
-        .counter-badge {
-            background-color: #e74c3c;
-            color: #fff;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .amount-badge-out {
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .amount-badge-in {
-            color: #2ecc71;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        /* Bottom Navigation Bar */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #fff;
-            border-top: 1px solid #e0e0e0;
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 999;
-        }
-
-        .nav-item {
-            display: table-cell;
-            text-align: center;
-            vertical-align: middle;
-            color: #7f8c8d;
-            text-decoration: none;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: #0f52ba;
-            font-weight: bold;
-        }
-
-        .nav-icon {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        /* Utility classes */
-        .section-title {
-            font-size: 15px;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            color: #2c3e50;
-            border-right: 4px solid #0f52ba;
-            padding-right: 8px;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Header Section -->
-    <div class="header">
-        <div class="header-profile">
-            <div class="profile-avatar">👨‍⚕️</div>
-            <div class="profile-info">
-                <h3>د. إبراهيم</h3>
-                <p>صيدليتك الذكية في جيبك</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Live Credit / Budget Dynamic Progress (Inspired by pharma distribution apps) -->
-    <div class="budget-card">
-        <div class="budget-title">
-            <span>مؤشر السيولة اليومي (الدرج vs النواثر)</span>
-            <span>65%</span>
-        </div>
-        <div class="progress-container">
-            <div class="progress-bar" id="budgetProgressBar"></div>
-        </div>
-        <div class="budget-stats">
-            <div>الخارج اليوم: <span class="stat-spent" id="spentVal">1,250 ج.م</span></div>
-            <div>صافي الدرج: <span class="stat-left" id="netVal">3,800 ج.م</span></div>
-        </div>
-    </div>
-
-    <!-- MAIN PAGES CONTENT CONTAINER -->
-    <div class="page-content">
-
-        <!-- 1. DASHBOARD PAGE -->
-        <div id="page-dashboard" class="app-section active">
-            <div class="section-title">الملخص المالي لشهر يونيو 2026</div>
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>إجمالي المبيعات المستلمة</h4>
-                    <p>مجموع الإيرادات اليومية المدخلة</p>
-                </div>
-                <div class="amount-badge-in">145,000 ج.م</div>
-            </div>
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>إجمالي المشتريات والشركات</h4>
-                    <p>فواتير ابن سينا، المتحدة، إلخ</p>
-                </div>
-                <div class="amount-badge-out">82,400 ج.م</div>
-            </div>
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>الالتزامات الثابتة</h4>
-                    <p>الرواتب (أحمد) + الإيجار</p>
-                </div>
-                <div class="amount-badge-out">12,000 ج.م</div>
-            </div>
-        </div>
-
-        <!-- 2. SHORTAGES PAGE (INTELLIGENT COUNTER) -->
-        <div id="page-shortages" class="app-section">
-            <div class="section-title">إدخال النواقص الذكي</div>
-            <div class="form-group">
-                <label for="drugInput">اسم الصنف أو التركيز (عربي / إنجليزي)</label>
-                <input type="text" id="drugInput" class="form-input" placeholder="اكتب أول حروف مثل Panadol..." autocomplete="off">
-                <div class="autocomplete-suggestions" id="suggestionsBox"></div>
-            </div>
-            <button class="btn" onclick="addDrugFromInput()">تسجيل نقص / زيادة العداد +1</button>
-
-            <div class="section-title">الأصناف الأكثر طلباً ونقصاً 💥</div>
-            <div class="data-list" id="shortagesList">
-                <!-- Pre-filled items imitating database hits -->
-                <div class="card-item">
-                    <div class="card-details">
-                        <h4>بندول اكسترا أقراص (Panadol Extra)</h4>
-                        <p>آخر طلب: منذ ساعتين</p>
-                    </div>
-                    <div class="counter-badge">اتطلب 9 مرات</div>
-                </div>
-                <div class="card-item">
-                    <div class="card-details">
-                        <h4>دانيست 8 ملج 4 مل أمبول</h4>
-                        <p>آخر طلب: أمس</p>
-                    </div>
-                    <div class="counter-badge">اتطلب 5 مرات</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. EXPENSES PAGE (FINANCIAL DETAILED LOG) -->
-        <div id="page-expenses" class="app-section">
-            <div class="section-title">تسجيل حركة ماليّة (الخارج)</div>
-            
-            <div class="form-group">
-                <label>التصنيف الرئيسي</label>
-                <select id="expCategory">
-                    <option value="شركات">فواتير شركات الأدوية</option>
-                    <option value="رواتب">رواتب وسلف موظفين</option>
-                    <option value="إيجار">إيجار الصيدلية الشهري</option>
-                    <option value="نواثر">مصاريف نثرية وتصليحات</option>
-                    <option value="شخصي">مسحوبات شخصية</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>المبلغ (ج.م)</label>
-                <input type="number" id="expAmount" class="form-input" placeholder="0.00">
-            </div>
-
-            <div class="form-group">
-                <label>البيان والتفاصيل (الفلوس خرجت فين؟)</label>
-                <input type="text" id="expDetails" class="form-input" placeholder="مثال: فاتورة ابن سينا، سلفة أحمد، كيس أكياس...">
-            </div>
-
-            <button class="btn" onclick="logExpense()">حفظ المعاملة بالتفصيل</button>
-
-            <div class="section-title">آخر حركات الخروج المفسّرة</div>
-            <div class="data-list" id="expensesHistory">
-                <div class="card-item">
-                    <div class="card-details">
-                        <h4>فاتورة شركة ابن سينا فارما</h4>
-                        <p>تصنيف: شركات | اليوم 11:30 م</p>
-                    </div>
-                    <div class="amount-badge-out">1,054 ج.م</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Bottom Tab Navigation -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('dashboard', this)">
-            <span class="nav-icon">📊</span>
-            الرئيسية
-        </div>
-        <div class="nav-item" onclick="switchTab('shortages', this)">
-            <span class="nav-icon">📋</span>
-            النواقص
-        </div>
-        <div class="nav-item" onclick="switchTab('expenses', this)">
-            <span class="nav-icon">💸</span>
-            المصاريف
-        </div>
-    </div>
-
-    <script>
-        // Dummy local database mimicking the profile branch for auto-complete
-        const localMedicinesDB = [
-            "Panadol Extra 500mg",
-            "Panadol Joint",
-            "Danyst 8mg/4ml Ampoule",
-            "Ancella Cox 90mg",
-            "Stimula N 400mg",
-            "Dolphin 75mg Suppository",
-            "Cocast 4mg Chewable"
-        ];
-
-        const drugInput = document.getElementById('drugInput');
-        const suggestionsBox = document.getElementById('suggestionsBox');
-
-        // Autocomplete Logic
-        drugInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            suggestionsBox.innerHTML = '';
-            
-            if (!query) {
-                suggestionsBox.style.display = 'none';
-                return;
-            }
-
-            const filtered = localMedicinesDB.filter(med => med.toLowerCase().includes(query));
-            
-            filtered.forEach(med => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerText = med;
-                div.onclick = function() {
-                    drugInput.value = med;
-                    suggestionsBox.style.display = 'none';
-                };
-                suggestionsBox.appendChild(div);
-            });
-
-            // "Add New Item" dynamic logic
-            if (!localMedicinesDB.some(med => med.toLowerCase() === query)) {
-                const addNewDiv = document.createElement('div');
-                addNewDiv.className = 'suggestion-item suggestion-add-new';
-                addNewDiv.innerText = `➕ إضافة "${drugInput.value}" كصنف جديد للسيستم`;
-                addNewDiv.onclick = function() {
-                    localMedicinesDB.push(drugInput.value);
-                    suggestionsBox.style.display = 'none';
-                    alert(`تم حفظ "${drugInput.value}" في قاموس الصيدلية بنجاح (سيتم رفعه لـ Firebase)!`);
-                };
-                suggestionsBox.appendChild(addNewDiv);
-            }
-
-            suggestionsBox.style.display = 'block';
-        });
-
-        // Hide autocomplete when clicking outside
-        document.addEventListener('click', function(e) {
-            if (e.target !== drugInput) {
-                suggestionsBox.style.display = 'none';
-            }
-        });
-
-        // Dynamic switch tab function
-        function switchTab(pageId, element) {
-            document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            element.classList.add('active');
-        }
-
-        // Dummy actions to display reactivity in WebView
-        function addDrugFromInput() {
-            const val = drugInput.value.trim();
-            if(!val) return alert('برجاء كتابة أو اختيار اسم دواء أولاً');
-            
-            const list = document.getElementById('shortagesList');
-            const item = document.createElement('div');
-            item.className = 'card-item';
-            item.innerHTML = `
-                <div class="card-details">
-                    <h4>${val}</h4>
-                    <p>آخر طلب: الآن</p>
-                </div>
-                <div class="counter-badge">اتطلب +1</div>
-            `;
-            list.insertBefore(item, list.firstChild);
-            drugInput.value = '';
-        }
-
-        function logExpense() {
+        // تسجيل حركة ماليّة (خارج)
+        window.logExpense = async function() {
             const cat = document.getElementById('expCategory').value;
-            const amt = document.getElementById('expAmount').value;
-            const det = document.getElementById('expDetails').value;
+            const amt = parseFloat(document.getElementById('expAmount').value);
+            const det = document.getElementById('expDetails').value.trim();
 
             if(!amt || !det) return alert('برجاء ملء خانة المبلغ والبيان التفصيلي');
 
-            const history = document.getElementById('expensesHistory');
-            const item = document.createElement('div');
-            item.className = 'card-item';
-            item.innerHTML = `
-                <div class="card-details">
-                    <h4>${det}</h4>
-                    <p>تصنيف: ${cat} | الآن</p>
-                </div>
-                <div class="amount-badge-out">${amt} ج.م</div>
-            `;
-            history.insertBefore(item, history.firstChild);
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    type: "out",
+                    category: cat,
+                    amount: amt,
+                    details: det,
+                    date: new Date()
+                });
+                document.getElementById('expAmount').value = '';
+                document.getElementById('expDetails').value = '';
+                alert('تم حفظ المعاملة بنجاح!');
+            } catch(e) { alert('خطأ في الحفظ: ' + e.message); }
+        };
+
+        // تسجيل إيراد الدرج اليومي
+        window.saveDailyRevenue = async function() {
+            const amt = parseFloat(document.getElementById('dailyRevenueInput').value);
+            if(!amt) return alert('برجاء إدخال مبلغ صحيح');
+
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    type: "in",
+                    category: "إيراد يومي",
+                    amount: amt,
+                    details: "إيراد درج الصيدلية الإجمالي",
+                    date: new Date()
+                });
+                document.getElementById('dailyRevenueInput').value = '';
+                alert('تم حفظ الإيراد اليومي بنجاح!');
+            } catch(e) { alert('خطأ: ' + e.message); }
+        };
+
+        // الاستماع الفوري لتحديثات الحسابات والماليات (Realtime Sync)
+        onSnapshot(collection(db, "transactions"), (snap) => {
+            let totalIn = 0; let totalPharma = 0; let totalExpenses = 0;
+            let todayOut = 0; let todayIn = 0;
+            const historyBox = document.getElementById('expensesHistory');
+            historyBox.innerHTML = '';
+
+            const todayStr = new Date().toDateString();
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const amt = data.amount || 0;
+                const txDate = data.date ? data.date.toDate() : new Date();
+
+                if(data.type === "in") {
+                    totalIn += amt;
+                    if(txDate.toDateString() === todayStr) todayIn += amt;
+                } else {
+                    if(data.category === "شركات") totalPharma += amt;
+                    else totalExpenses += amt;
+
+                    if(txDate.toDateString() === todayStr) todayOut += amt;
+
+                    // عرض قائمة الحركات في صفحة المصاريف
+                    const item = document.createElement('div');
+                    item.className = 'card-item';
+                    item.innerHTML = `<div class="card-details"><h4>${data.details}</h4><p>تصنيف: ${data.category}</p></div><div class="amount-badge-out">${amt} ج.م</div>`;
+                    historyBox.appendChild(item);
+                }
+            });
+
+            // تحديث واجهة الأرقام
+            document.getElementById('totalRevenueBadge').innerText = `${totalIn.toLocaleString()} ج.م`;
+            document.getElementById('totalPharmaBadge').innerText = `${totalPharma.toLocaleString()} ج.م`;
+            document.getElementById('totalExpensesBadge').innerText = `${totalExpenses.toLocaleString()} ج.م`;
+
+            // حساب مؤشر السيولة اليومي للدرج
+            document.getElementById('spentVal').innerText = `${todayOut.toLocaleString()} ج.م`;
+            document.getElementById('netVal').innerText = `${(todayIn - todayOut).toLocaleString()} ج.م`;
             
-            // clear inputs
-            document.getElementById('expAmount').value = '';
-            document.getElementById('expDetails').value = '';
-            alert('تم تسجيل البيانات محلياً وجاري مزامنتها مع قاعدة بيانات الـ Firebase الخاصة بك!');
+            let percent = 0;
+            if (todayIn > 0) percent = Math.min(Math.round((todayOut / todayIn) * 100), 100);
+            document.getElementById('budgetPercent').innerText = `${percent}%`;
+            document.getElementById('budgetProgressBar').style.width = `${percent}%`;
+        });
+
+        // الاستماع الفوري لقسم النواقص مرتبة حسب الأكثر طلباً
+        const shortagesQuery = query(collection(db, "shortages"), orderBy("demand_count", "desc"), limit(15));
+        onSnapshot(shortagesQuery, (snap) => {
+            const list = document.getElementById('shortagesList');
+            list.innerHTML = '';
+            if(snap.empty) { list.innerHTML = '<p style="text-align:center; color:#999;">لا توجد نواقص مسجلة حالياً</p>'; return; }
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'card-item';
+                item.innerHTML = `<div class="card-details"><h4>${data.name}</h4><p>صيدلية د. إبراهيم</p></div><div class="counter-badge">اتطلب ${data.demand_count} مرات</div>`;
+                list.appendChild(item);
+            });
+        });
+    </script>
+
+    <script>
+        // دالة التنقل بين الشاشات
+        function switchTab(pageId, element) {
+            document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            element.classList.add('active');
         }
     </script>
 </body>
