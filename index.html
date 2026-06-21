@@ -15,7 +15,7 @@
             padding: 0;
             background-color: #f4f7f9;
             color: #333;
-            padding-bottom: 70px; /* space for bottom nav */
+            padding-bottom: 70px;
         }
 
         /* Top Header */
@@ -35,6 +35,453 @@
         }
 
         .profile-avatar {
+            width: 45px;
+            height: 45px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0f52ba;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .profile-info h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .profile-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Budget Card */
+        .budget-card {
+            background: #fff;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .budget-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-container {
+            background-color: #eef2f5;
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #ff9900, #ff5500);
+            height: 100%;
+            width: 0%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+
+        .budget-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .stat-spent { color: #ff5500; }
+        .stat-left { color: #2ecc71; }
+
+        .page-content {
+            padding: 0 15px;
+        }
+
+        .app-section {
+            display: none;
+        }
+
+        .app-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd6dd;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #fff;
+            outline: none;
+        }
+
+        .form-input:focus, select:focus {
+            border-color: #0f52ba;
+        }
+
+        .btn {
+            background-color: #0f52ba;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccd6dd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f4f7;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f4f7;
+        }
+
+        .suggestion-add-new {
+            background-color: #fff9e6;
+            color: #b77c00;
+            font-weight: bold;
+        }
+
+        .card-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-details h4 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .card-details p {
+            margin: 0;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .counter-badge {
+            background-color: #e74c3c;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .amount-badge-out { color: #e74c3c; font-weight: bold; font-size: 14px; }
+        .amount-badge-in { color: #2ecc71; font-weight: bold; font-size: 14px; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #fff;
+            border-top: 1px solid #e0e0e0;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 999;
+        }
+
+        .nav-item {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            color: #7f8c8d;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: #0f52ba;
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            color: #2c3e50;
+            border-right: 4px solid #0f52ba;
+            padding-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-profile">
+            <div class="profile-avatar">👨‍⚕️</div>
+            <div class="profile-info">
+                <h3>د. إبراهيم</h3>
+                <p>صيدليتك الذكية في جيبك</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="budget-card">
+        <div class="budget-title">
+            <span>مؤشر السيولة اليومي (الدرج vs المصاريف)</span>
+            <span id="budgetPercent">0%</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="budgetProgressBar"></div>
+        </div>
+        <div class="budget-stats">
+            <div>الخارج اليوم: <span class="stat-spent" id="spentVal">0 ج.م</span></div>
+            <div>صافي الدرج: <span class="stat-left" id="netVal">0 ج.م</span></div>
+        </div>
+    </div>
+
+    <div class="page-content">
+
+        <div id="page-dashboard" class="app-section active">
+            <div class="section-title">الملخص المالي لشهر يونيو 2026</div>
+            
+            <div class="form-group" style="background:#fff; padding:12px; border-radius:8px; margin-bottom:15px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                <label style="font-weight:bold; color:#0f52ba;">إدخال إيراد الدرج اليومي</label>
+                <div style="display:flex; gap:8px; margin-top:5px;">
+                    <input type="number" id="dailyRevenueInput" class="form-input" placeholder="اكتب إجمالي الإيراد بالجنيه">
+                    <button class="btn" style="width:auto; padding:0 20px;" onclick="saveDailyRevenue()">حفظ</button>
+                </div>
+            </div>
+
+            <div class="card-item">
+                <div class="card-details">
+                    <h4>إجمالي المبيعات المستلمة</h4>
+                    <p>مجموع الإيرادات اليومية المدخلة</p>
+                </div>
+                <div class="amount-badge-in" id="totalRevenueBadge">0 ج.م</div>
+            </div>
+            <div class="card-item">
+                <div class="card-details">
+                    <h4>إجمالي المشتريات والشركات</h4>
+                    <p>فواتير ابن سينا، المتحدة، إلخ</p>
+                </div>
+                <div class="amount-badge-out" id="totalPharmaBadge">0 ج.م</div>
+            </div>
+            <div class="card-item">
+                <div class="card-details">
+                    <h4>الالتزامات الثابتة والنواثر</h4>
+                    <p>الرواتب + الإيجار + مصاريف التشغيل</p>
+                </div>
+                <div class="amount-badge-out" id="totalExpensesBadge">0 ج.m</div>
+            </div>
+        </div>
+
+        <div id="page-shortages" class="app-section">
+            <div class="section-title">إدخال النواقص الذكي</div>
+            <div class="form-group">
+                <label for="drugInput">اسم الصنف أو التركيز (عربي / إنجليزي)</label>
+                <input type="text" id="drugInput" class="form-input" placeholder="اكتب أول حروف مثل Panadol..." autocomplete="off">
+                <div class="autocomplete-suggestions" id="suggestionsBox"></div>
+            </div>
+            <button class="btn" onclick="addDrugFromInput()">تسجيل نقص / زيادة العداد +1</button>
+
+            <div class="section-title">الأصناف الأكثر طلباً ونقصاً 💥</div>
+            <div class="data-list" id="shortagesList">
+                <p style="text-align:center; color:#999;">جاري تحميل النواقص من Firebase...</p>
+            </div>
+        </div>
+
+        <div id="page-expenses" class="app-section">
+            <div class="section-title">تسجيل حركة ماليّة (الخارج)</div>
+            
+            <div class="form-group">
+                <label>التصنيف الرئيسي</label>
+                <select id="expCategory">
+                    <option value="شركات">فواتير شركات الأدوية</option>
+                    <option value="رواتب">رواتب وسلف موظفين</option>
+                    <option value="إيجار">إيجار الصيدلية الشهري</option>
+                    <option value="نواثر">مصاريف نثرية وتصليحات</option>
+                    <option value="شخصي">مسحوبات شخصية</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>المبلغ (ج.م)</label>
+                <input type="number" id="expAmount" class="form-input" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label>البيان والتفاصيل (الفلوس خرجت فين؟)</label>
+                <input type="text" id="expDetails" class="form-input" placeholder="مثال: فاتورة ابن سينا، سلفة أحمد...">
+            </div>
+
+            <button class="btn" onclick="logExpense()">حفظ المعاملة بالتفصيل</button>
+
+            <div class="section-title">آخر حركات الخروج المفسّرة</div>
+            <div class="data-list" id="expensesHistory">
+                <p style="text-align:center; color:#999;">جاري تحميل المصاريف...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('dashboard', this)">
+            <span class="nav-icon">📊</span>الرئيسية
+        </div>
+        <div class="nav-item" onclick="switchTab('shortages', this)">
+            <span class="nav-icon">📋</span>النواقص
+        </div>
+        <div class="nav-item" onclick="switchTab('expenses', this)">
+            <span class="nav-icon">💸</span>المصاريف
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // بيانات مشروعك الحقيقية التي أرسلتها
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4hRnaIq3Dn4o8cqgTVk3vg_XXmwyqOlA",
+            authDomain: "my-assistant-7c330.firebaseapp.com",
+            projectId: "my-assistant-7c330",
+            storageBucket: "my-assistant-7c330.firebasestorage.app",
+            messagingSenderId: "509561059857",
+            appId: "1:509561059857:web:edeb6a4a2526f15bb00fb0",
+            measurementId: "G-ZPM602TWDY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // قاموس أدوية محلي مبدئي للبحث السريع
+        let localMedicinesDB = [
+            "Panadol Extra 500mg", "Panadol Joint", "Danyst 8mg/4ml Ampoule",
+            "Ancella Cox 90mg", "Stimula N 400mg", "Dolphin 75mg Suppository", "Cocast 4mg"
+        ];
+
+        // تحميل قائمة الأدوية الإضافية من الـ Firebase للبحث الذكي
+        async function loadMedicinesDictionary() {
+            try {
+                const snap = await getDocs(collection(db, "medicines_list"));
+                snap.forEach(doc => {
+                    const name = doc.data().name;
+                    if(!localMedicinesDB.includes(name)) localMedicinesDB.push(name);
+                });
+            } catch(e) { console.error(e); }
+        }
+        loadMedicinesDictionary();
+
+        // منطق البحث الذكي (Autocomplete)
+        const drugInput = document.getElementById('drugInput');
+        const suggestionsBox = document.getElementById('suggestionsBox');
+
+        drugInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            suggestionsBox.innerHTML = '';
+            if (!val) { suggestionsBox.style.display = 'none'; return; }
+
+            const filtered = localMedicinesDB.filter(med => med.toLowerCase().includes(val.toLowerCase()));
+            filtered.slice(0, 5).forEach(med => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = med;
+                div.onclick = function() { drugInput.value = med; suggestionsBox.style.display = 'none'; };
+                suggestionsBox.appendChild(div);
+            });
+
+            if (!localMedicinesDB.some(med => med.toLowerCase() === val.toLowerCase())) {
+                const addNewDiv = document.createElement('div');
+                addNewDiv.className = 'suggestion-item suggestion-add-new';
+                addNewDiv.innerText = `➕ إضافة "${val}" كصنف جديد دائم`;
+                addNewDiv.onclick = async function() {
+                    await addDoc(collection(db, "medicines_list"), { name: val });
+                    localMedicinesDB.push(val);
+                    suggestionsBox.style.display = 'none';
+                    alert(`تم حفظ "${val}" في قاموس الصيدلية بنجاح!`);
+                };
+                suggestionsBox.appendChild(addNewDiv);
+            }
+            suggestionsBox.style.display = 'block';
+        });
+
+        // إغلاق المنسدلة عند الضغط في أي مكان
+        document.addEventListener('click', (e) => { if(e.target !== drugInput) suggestionsBox.style.display = 'none'; });
+
+        // إضافة دواء ناقص أو تكراره مع زيادة العداد
+        window.addDrugFromInput = async function() {
+            const val = drugInput.value.trim();
+            if(!val) return alert('برجاء كتابة أو اختيار اسم دواء أولاً');
+
+            try {
+                const q = query(collection(db, "shortages"), where("name", "==", val));
+                const querySnap = await getDocs(q);
+
+                if(!querySnap.empty) {
+                    const existingDoc = querySnap.docs[0];
+                    await updateDoc(doc(db, "shortages", existingDoc.id), {
+                        demand_count: increment(1),
+                        last_requested: new Date()
+                    });
+                } else {
+                    await addDoc(collection(db, "shortages"), {
+                        name: val,
+                        demand_count: 1,
+                        last_requested: new Date        .profile-avatar {
             width: 45px;
             height: 45px;
             background-color: #fff;
