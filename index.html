@@ -182,6 +182,41 @@
             document.getElementById('user-pass-input').value = savedPass;
             customerLoginProcess(true);
         }
+        // تشغيل تحديث لحظي ذكي كل 3 ثوانٍ بدون ريفريش كامل وبدون استهلاك للإنترنت
+setInterval(async () => {
+    // نتحقق أولاً أن العميل مسجل دخول حالياً وموجود داخل التطبيق
+    const loggedInPhone = localStorage.getItem('userPhone') || (typeof currentCustomerPhone !== 'undefined' ? currentCustomerPhone : null);
+    
+    if (loggedInPhone) {
+        try {
+            // 1. تحديث الرسالة الافتتاحية فوراً لو الأدمن عدّلها
+            if (typeof loadMainAnnouncement === 'function') {
+                await loadMainAnnouncement();
+            }
+            
+            // 2. تحديث طلبات الأدوية، الشات المخصص، وحالة الطلبات فوراً
+            if (typeof loadMyOrders === 'function') {
+                await loadMyOrders();
+            }
+            
+            // 3. تحديث نقاط العميل لو الأدمن زوّدها أو نقصها في نفس اللحظة
+            if (typeof DB_URL !== 'undefined') {
+                const res = await fetch(`${DB_URL}/customers/${loggedInPhone}.json`);
+                const userData = await res.json();
+                if (userData) {
+                    // تحديث النقاط على الشاشة مباشرة
+                    // تأكد من اسم كلاس أو معرف الـ div الخاص بالنقاط عندك (مثلاً: user-points)
+                    const pointsElement = document.getElementById('user-points') || document.querySelector('.points-badge');
+                    if (pointsElement) {
+                        pointsElement.innerText = `${userData.points || 0} نقطة`;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("خطأ أثناء التحديث اللحظي في الخلفية:", error);
+        }
+    }
+}, 3000); // 3000 ملي ثانية تعني كل 3 ثوانٍ (سرعة ممتازة وموفرة للإنترنت)
     });
 
     async function checkAnnouncement() {
