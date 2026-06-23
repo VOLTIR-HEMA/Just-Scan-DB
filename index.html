@@ -192,7 +192,7 @@
         const phone = document.getElementById('user-phone-input').value.trim();
         const password = document.getElementById('user-pass-input').value.trim();
         
-        if(!phone || !password) return alert("برجاء إدخال رقم الموبايل وكلمة المرور.");
+        if(!phone || !password) return ("برجاء إدخال رقم الموبايل وكلمة المرور.");
 
         try {
             // 1. أولاً: نفحص هل الحساب مسجل ومقبول في النظام الرسمي؟
@@ -362,25 +362,25 @@
                     hasOrders = true;
 
                     // تحديد لون الحالة بناءً على الردود القادمة من الأدمن
+                    // تحديد لون الحالة بناءً على الردود الجديدة من الأدمن
                     let statusClass = "status-pending";
                     if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية") statusClass = "status-success";
                     if(ord.status === "غير متوفر") statusClass = "status-danger";
                     if(ord.status === "تم طلبه") statusClass = "status-warning"; // لون أصفر/برتقالي للحالة الجديدة
-
+ 
                     const row = document.createElement('div');
                     row.className = 'order-item';
                     row.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                             <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
-                            ${(!ord.status || ord.status === "قيد المراجعة والتحضير" || ord.status === "معلق") ? `
-                                <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
-                            ` : ''}
+                            <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
                         </div>
                         <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
-                        ${ord.image ? `<div style="margin:5px 0;"><a href="${ord.image}" target="_blank" style="color:var(--primary); font-size:0.85em;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
+                        
+                        ${ord.image ? `<div style="margin:5px 0;"><a href="${ord.image}" target="_blank" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
-                            <span class="status-badge ${statusClass}">⏳ ${ord.status || 'قيد المراجعة والتحضير'}</span>
+                            <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد Mراجعة والتحضير'}</span>
                         </div>
 
                         ${ord.chat ? `
@@ -468,16 +468,44 @@
         }
     }   
     // دالة تمكن المستخدم من إلغاء وحذف طلبه مباشرة من حسابه
+    // دالة تمكن المستخدم من إلغاء وحذف طلبه مباشرة من حسابه باستخدام SweetAlert2
     async function cancelMyOrder(id) {
-        if(confirm("هل أنت متأكد من رغبتك في إلغاء وحذف هذا الطلب؟")) {
-            try {
-                await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
-                alert("✅ تم إلغاء وحذف الطلب بنجاح.");
-               loadMyOrders(); // إعادة تحديث القائمة عند العميل فوراً
-            } catch(e) {
-                alert("خطأ أثناء إلغاء الطلب: " + e.message);
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "هل تريد حقاً إلغاء وحذف هذا الطلب نهائياً؟",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // لون الحذف الأحمر
+            cancelButtonColor: '#334155',  // لون الإلغاء الداكن
+            confirmButtonText: 'نعم، احذفه',
+            cancelButtonText: 'تراجع',
+            background: '#1e293b',
+            color: '#f1f5f9'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
+                    Swal.fire({
+                        title: 'تم الحذف!',
+                        text: '✅ تم إلغاء وحذف الطلب بنجاح.',
+                        icon: 'success',
+                        confirmButtonColor: '#38bdf8',
+                        background: '#1e293b',
+                        color: '#f1f5f9'
+                    });
+                    loadMyOrders(); // تحديث القائمة فوراً بعد الحذف
+                } catch(e) {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: "حدث خطأ أثناء إلغاء الطلب: " + e.message,
+                        icon: 'error',
+                        confirmButtonColor: '#38bdf8',
+                        background: '#1e293b',
+                        color: '#f1f5f9'
+                    });
+                }
             }
-        }
+        });
     }
 </script>
 </body>
