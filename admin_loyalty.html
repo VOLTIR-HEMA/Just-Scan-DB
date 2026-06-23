@@ -163,37 +163,26 @@
         <input type="hidden" id="modal-phone">
         
         <div class="form-group">
-            <label>النقاط المراد إضافتها (أو خصمها باستخدام علامة السلبي -)</label>
-            <input type="number" id="points-amount" class="form-control" placeholder="مثال: 50 أو -20">
+            <label>اسم العميل الثنائي</label>
+            <input type="text" id="modal-customer-name" class="form-control" placeholder="محمد أحمد">
         </div>
 
         <div class="form-group">
-            <label style="color: #fbbf24;">تعديل/تغيير كلمة المرور للعميل</label>
+            <label>النوع (لتوجيه العروض الذكية)</label>
+            <select id="modal-customer-gender" class="form-control">
+                <option value="رجال">رجل</option>
+                <option value="نساء">سيدة</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label style="color: #fbbf24;">تعديل كلمة المرور للعميل</label>
             <input type="text" id="modal-new-password" class="form-control" placeholder="اكتب الباسورد الجديد هنا">
         </div>
 
-        <div class="modal-section">
-            <h4 style="color: var(--primary); margin: 0 0 10px 0;">💬 شات ورسائل العميل</h4>
-            <div class="form-group">
-                <label>الرسالة المستلمة أو الشات الحالي للعميل:</label>
-                <div id="modal-chat-view" style="background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-height: 40px; color: #fbbf24; white-space: pre-wrap;">لا توجد رسائل سابقة.</div>
-            </div>
-            <div class="form-group">
-                <label>ردك الخاص في الشات:</label>
-                <input type="text" id="modal-chat-reply" class="form-control" placeholder="اكتب رداً خاصاً في الشات للعميل...">
-            </div>
-        </div>
-
-        <div class="modal-section">
-            <h4 style="color: #a855f7; margin: 0 0 10px 0;">🔔 العروض الفردية والإشعارات المخصصة</h4>
-            <div class="form-group">
-                <label>العرض الخاص أو الإشعار الحالي للعميل:</label>
-                <div id="modal-custom-offer-view" style="background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-height: 40px; color: #22c55e;">لا يوجد عرض خاص حالياً.</div>
-            </div>
-            <div class="form-group">
-                <label>إرسال عرض أو إشعار جديد (مثال: دواءك المطلب وصل الصيدلية):</label>
-                <input type="text" id="modal-custom-offer-input" class="form-control" placeholder="اكتب العرض الفردي أو الإشعار هنا...">
-            </div>
+        <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <label>النقاط المراد إضافتها (أو خصمها باستخدام علامة السلبي -)</label>
+            <input type="number" id="points-amount" class="form-control" placeholder="مثال: 50 أو -20">
         </div>
         
         <div class="actions-btn" style="margin-top: 20px;">
@@ -242,17 +231,20 @@
             row.className = 'user-row';
             row.setAttribute('data-phone', phone);
             row.innerHTML = `
-                <div class="user-info-brief">
-                    <b>${user.name} (${user.gender})</b>
-                    <span>📱 ${phone} | 🔑 الباسورد: <span style="color: #fbbf24; font-weight: bold;">${user.password || 'لا يوجد'}</span></span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div class="points-badge">${user.points || 0} نقطة</div>
-                    <div class="actions-btn">
-                        <button class="mini-btn" style="background: var(--primary); color: var(--bg);" onclick="openPointsModal('${phone}', '${user.name}', ${user.points || 0})">⚙️ إدارة العميل</button>
-                    </div>
-                </div>
-            `;
+    <div class="user-info-brief">
+        <b>${user.name} (${user.gender || 'غير محدد'})</b>
+        <span>📱 <span style="font-family: monospace; font-size: 1.1em;">${phone}</span></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="points-badge">${user.points || 0} نقطة</div>
+        <div class="actions-btn">
+            <a href="https://wa.me/2${phone}" target="_blank" style="background: #22c55e; color: #fff; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.85em; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                💬 واتساب
+            </a>
+            <button class="mini-btn" style="background: var(--primary); color: var(--bg);" onclick="openPointsModal('${phone}', '${user.name}', ${user.points || 0})">⚙️ إدارة العميل</button>
+        </div>
+    </div>
+`;
             listDiv.appendChild(row);
         });
     }
@@ -320,19 +312,15 @@
     function openPointsModal(phone, name, currentPoints) {
         const user = allCustomers[phone] || {};
         document.getElementById('modal-phone').value = phone;
-        document.getElementById('modal-title').innerText = `إدارة حساب العميل: ${name}`;
+        document.getElementById('modal-title').innerText = `إدارة حساب العميل`;
         document.getElementById('modal-subtitle').innerText = `الرقم: ${phone} | النقاط الحالية: ${currentPoints} نقطة`;
+        
+        // عرض اسم العميل الحالي ونوعه في الخانات لتعديلها
+        document.getElementById('modal-customer-name').value = user.name || name;
+        document.getElementById('modal-customer-gender').value = user.gender || 'رجال';
         
         document.getElementById('points-amount').value = '';
         document.getElementById('modal-new-password').value = user.password || '';
-        
-        // عرض الشات الفردي المخزن على حساب العميل مباشرة
-        document.getElementById('modal-chat-view').innerText = user.chat || "لا توجد رسائل في الشات بينك وبينه حالياً.";
-        document.getElementById('modal-chat-reply').value = user.chat || '';
-        
-        // عرض العرض الفردي المخزن حالياً للعميل
-        document.getElementById('modal-custom-offer-view').innerText = user.customOffer || "لا يوجد عرض فردي أو إشعار مخصص نشط حالياً.";
-        document.getElementById('modal-custom-offer-input').value = user.customOffer || '';
 
         document.getElementById('pointsModal').style.display = 'flex';
     }
@@ -342,38 +330,51 @@
     // عملية الحفظ والتحديث الشاملة لكل البيانات في ضغطة زر واحدة بدون تكرار
     async function updatePointsProcess() {
         const phone = document.getElementById('modal-phone').value;
-        const amountInput = document.getElementById('points-amount').value.trim();
+        const currentCustomer = allCustomers[phone] || {};
+        
+        // قراءة القيم الجديدة من الواجهة
+        const updatedName = document.getElementById('modal-customer-name').value.trim();
+        const updatedGender = document.getElementById('modal-customer-gender').value;
         const newPass = document.getElementById('modal-new-password').value.trim();
-        const chatReply = document.getElementById('modal-chat-reply').value.trim();
-        const customOffer = document.getElementById('modal-custom-offer-input').value.trim();
+        const amountInput = document.getElementById('points-amount').value.trim();
+        
+        if(!updatedName) {
+            return Swal.fire('تنبيه', '❌ لا يمكن ترك اسم العميل فارغاً.', 'warning');
+        }
         
         try {
-            // تحديث النقاط لو تم كتابتها
+            // حساب النقاط الجديدة لو الأدمن كتب قيمة
+            let finalPoints = currentCustomer.points || 0;
             if(amountInput !== "") {
                 const amount = parseInt(amountInput) || 0;
-                const currentPoints = allCustomers[phone].points || 0;
-                allCustomers[phone].points = Math.max(0, currentPoints + amount);
-                await fetch(`${DB_URL}/customers/${phone}/points.json`, { method: 'PUT', body: JSON.stringify(allCustomers[phone].points) });
+                finalPoints = Math.max(0, finalPoints + amount);
             }
 
-            // تحديث الباسورد
-            if(newPass) {
-                allCustomers[phone].password = newPass;
-                await fetch(`${DB_URL}/customers/${phone}/password.json`, { method: 'PUT', body: JSON.stringify(newPass) });
+            // تجهيز البيانات بالكامل لإرسالها دفعة واحدة
+            const payload = {
+                ...currentCustomer,
+                name: updatedName,
+                gender: updatedGender,
+                password: newPass ? newPass : (currentCustomer.password || ''),
+                points: finalPoints
+            };
+
+            // رفع البيانات المحدثة إلى حساب العميل مباشرة في الفايربيز
+            const res = await fetch(`${DB_URL}/customers/${phone}.json`, { 
+                method: 'PUT', 
+                body: JSON.stringify(payload) 
+            });
+
+            if(res.ok) {
+                Swal.fire('تم التحديث الشامل', '✅ تم حفظ وتحديث بيانات العميل بنجاح!', 'success');
+                closeModal();
+                loadCustomers(); // إعادة تحميل القائمة لتحديث الشاشة فوراً
+            } else {
+                throw new Error('فشل في تحديث البيانات بالسيرفر');
             }
-
-            // تحديث شات العميل
-            allCustomers[phone].chat = chatReply;
-            await fetch(`${DB_URL}/customers/${phone}/chat.json`, { method: 'PUT', body: JSON.stringify(chatReply) });
-
-            // تحديث العرض الفردي / الإشعارات المخصصة له
-            allCustomers[phone].customOffer = customOffer;
-            await fetch(`${DB_URL}/customers/${phone}/customOffer.json`, { method: 'PUT', body: JSON.stringify(customOffer) });
-
-            Swal.fire('تم التحديث الشامل', '✅ تم حفظ وتحديث كافة البيانات والشات والإشعارات بنجاح!', 'success');
-            closeModal();
-            loadCustomers();
-        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+        } catch(e) { 
+            Swal.fire('خطأ', e.message, 'error'); 
+        }
     }
 
     async function loadAdminOffers() {
@@ -417,7 +418,7 @@
     async function loadAdminOrders() {
         const container = document.getElementById('admin-orders-list');
         try {
-            const res = await fetch(`${DB_URL}/orders.json`);
+            const res = await fetch(`${DB_URL}/medicine_orders.json`);
             const orders = await res.json();
             container.innerHTML = '';
 
@@ -452,14 +453,19 @@
                 row.style.alignItems = 'flex-start';
                 row.innerHTML = `
                     <div style="width:100%; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                        <b>👤 العميل: ${o.customerName} (${o.customerPhone})</b>
-                        <span style="color:var(--primary); font-weight:bold;">💊 الطلب: ${o.drugName}</span>
+                        <b>👤 العميل: ${allCustomers[o.phone]?.name || "زبون"} (<span style="color:var(--primary);">${o.phone}</span>)</b>
+<span style="color:var(--text-dim); font-size:0.85em;">📅 التاريخ: ${new Date(o.date).toLocaleString('ar-EG')}</span>
+</div>
+<div style="margin:10px 0; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; width:100%; box-sizing:border-box;">
+    <p style="margin:0; font-weight:bold; color:#fff;">💊 محتوى الطلب: ${o.details}</p>
+    ${o.image ? `<div style="margin-top:10px;"><a href="${o.image}" target="_blank" style="color:var(--primary); font-weight:bold;">🖼️ اضغط لفتح صورة الروشتة</a></div>` : ''}
                     </div>
                     <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
 
                     <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
                         <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
                         <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
+                        <button class="mini-btn" style="background:#fbbf24; color:#000;" onclick="updateOrderStatus('${id}', 'تم طلبه')">📦 تم طلبه للعيادة</button>
                         <input type="text" id="chat-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" placeholder="اكتب رداً أو شات للزبون..." value="${o.chat || ''}">
                         <button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💬 إرسال رد</button>
                     </div>
@@ -471,7 +477,7 @@
 
     async function updateOrderStatus(id, newStatus) {
         try {
-            await fetch(`${DB_URL}/orders/${id}/status.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
+            await fetch(`${DB_URL}/medicine_orders/${id}/status.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
             Swal.fire('تم التحديث', `تم تحويل حالة الطلب إلى: ${newStatus}`, 'success');
             loadAdminOrders();
         } catch(e) { console.error(e); }
@@ -480,7 +486,7 @@
     async function sendOrderChat(id) {
         const msg = document.getElementById(`chat-reply-${id}`).value.trim();
         try {
-            await fetch(`${DB_URL}/orders/${id}/chat.json`, { method: 'PUT', body: JSON.stringify(msg) });
+            await fetch(`${DB_URL}/medicine_orders/${id}/chat.json`, { method: 'PUT', body: JSON.stringify(msg) });
             Swal.fire('تم الإرسال', 'وصل ردك للزبون وسيتلقى تنبيهاً فورياً داخل التطبيق!', 'success');
             loadAdminOrders();
         } catch(e) { console.error(e); }
