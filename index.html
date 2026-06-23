@@ -25,12 +25,12 @@
         
         .btn-action { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 8px; color: var(--bg-dark); font-weight: bold; font-size: 1.1em; cursor: pointer; }
         .btn-secondary { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
-.btn-secondary:hover { color: var(--primary); border-color: var(--primary); }
+        .btn-secondary:hover { color: var(--primary); border-color: var(--primary); }
 
-/* ستايل نافذة إنشاء حساب جديد المنبثقة */
-#registerModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px; }
-.modal-content { background: var(--card-bg); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-.modal-content h3 { margin-top: 0; color: var(--primary); text-align: center; }
+        /* ستايل نافذة إنشاء حساب جديد المنبثقة */
+        #registerModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-content h3 { margin-top: 0; color: var(--primary); text-align: center; }
         /* Main Portal UI (Hidden before login) */
         #portal-ui { display: none; }
         
@@ -84,7 +84,8 @@
             <p style="color: var(--text-dim); text-align: center;">جاري تصفية العروض المخصصة لك...</p>
         </div>
     </div>
-<div id="registerModal">
+
+    <div id="registerModal">
         <div class="modal-content">
             <h3>📝 طلب إنشاء حساب جديد</h3>
             <p style="color: var(--text-dim); font-size: 0.85em; text-align: center; margin-bottom: 20px;">سيتم إرسال طلبك للأدمن للمراجعة والتفعيل خلال 24 ساعة.</p>
@@ -139,6 +140,24 @@
                 return alert("❌ كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.");
             }
 
+            // [تم الإصلاح والإكمال بنجاح هنا]: الانتقال لواجهة المستخدم بعد تسجيل الدخول بنجاح
+            document.getElementById('ui-holder-name').innerText = user.name || "---";
+            document.getElementById('ui-holder-phone').innerText = phone;
+            document.getElementById('ui-points-val').innerText = user.points || 0;
+            document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${user.cashback || 0} ج.م`;
+
+            // إخفاء شاشة تسجيل الدخول وإظهار لوحة التحكم
+            document.getElementById('login-ui').style.display = 'none';
+            document.getElementById('portal-ui').style.display = 'block';
+
+            // جلب العروض وتصفيتها حسب جنس العميل المكتشف
+            loadAndFilterOffers(user.gender || "الكل");
+
+        } catch (e) {
+            alert("خطأ أثناء تسجيل الدخول: " + e.message);
+        }
+    }
+
     async function loadAndFilterOffers(customerGender) {
         const container = document.getElementById('offers-container');
         container.innerHTML = '';
@@ -178,7 +197,8 @@
             container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل العروض.</p>';
         }
     }
-         // دوال فتح وإغلاق نافذة تقديم الطلب
+
+    // دوال فتح وإغلاق نافذة تقديم الطلب
     function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
     function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
 
