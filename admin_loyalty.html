@@ -61,6 +61,7 @@
     <div class="admin-nav">
         <button class="nav-btn" onclick="toggleSection('register-card', this)">➕ حساب جديد</button>
         <button class="nav-btn" onclick="toggleSection('offer-card', this)">🔥 إضافة عرض</button>
+        <button class="nav-btn" onclick="toggleSection('announcement-card', this)">💬 الرسالة الافتتاحية للعميل</button>
         <button class="nav-btn" onclick="toggleSection('requests-card', this)">⏳ الحسابات المعلقة</button>
         <button class="nav-btn" onclick="toggleSection('offers-list-card', this)">📢 العروض المنشورة</button>
         <button class="nav-btn" onclick="toggleSection('orders-card', this)">📥 طلبات الأدوية</button>
@@ -108,6 +109,14 @@
                     <option value="رجال">رجال فقط</option>
                     <option value="نساء">نساء فقط</option>
                 </select>
+                <div id="announcement-card" class="section-card">
+    <h2>💬 تعديل الرسالة الافتتاحية للعميل</h2>
+    <div class="form-group">
+        <label>نص الرسالة التي تظهر للعميل فور فتح التطبيق</label>
+        <textarea id="announcement-text" class="form-control" rows="3" placeholder="أهلاً بك في صيدليتنا! يتوفر لدينا الآن..."></textarea>
+    </div>
+    <button class="btn" style="background: #22c55e; color: #000;" onclick="saveAnnouncement()">💾 حفظ ونشر الرسالة</button>
+</div>
             </div>
             <button class="btn" style="background: #a855f7;" onclick="publishOffer()">📢 نشر العرض للعملاء</button>
         </div>
@@ -563,14 +572,49 @@
     }
 
     // استدعاء الدوال عند بدء التحميل
-    loadCustomers();
-    loadAdminOffers();
-    loadAdminOrders();
-    loadPendingRequests();
+   // دالة حفظ ونشر الرسالة الافتتاحية للعميل
+    async function saveAnnouncement() {
+        const text = document.getElementById('announcement-text').value.trim();
+        try {
+            const res = await fetch(`${DB_URL}/announcement.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ text: text, updatedAt: Date.now() })
+            });
+            if(res.ok) {
+                Swal.fire('تم الحفظ', '🎉 تم تحديث الرسالة الافتتاحية بنجاح وستظهر للعملاء فوراً!', 'success');
+            }
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
 
-    // فحص دوري تلقائي
-    setInterval(loadAdminOrders, 10000);
-    setInterval(loadPendingRequests, 10000);
+    // دالة جلب الرسالة الافتتاحية الحالية لعرضها بالأدمن عند الفتح
+    async function loadCurrentAnnouncement() {
+        try {
+            const res = await fetch(`${DB_URL}/announcement.json`);
+            const data = await res.json();
+            if(data && data.text) {
+                document.getElementById('announcement-text').value = data.text;
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // الميكانيزم المطور: الفحص الفوري التلقائي (تجنب تعليق الـ Fetch)
+    function startRealtimeUpdates() {
+        // فحص مبدئي فوري لكل الدوال
+        loadCustomers();
+        loadAdminOffers();
+        loadAdminOrders();
+        loadPendingRequests();
+        loadCurrentAnnouncement();
+
+        // فحص دوري ذكي ومتقارب جداً (كل ثانيتين) لتحديث الشاشة والإشعارات بدون تهنيج
+        setInterval(async () => {
+            await loadAdminOrders();
+            await loadPendingRequests();
+        }, 2000);
+    }
+
+    // تشغيل الميكانيزم فور تحميل الصفحة
+    window.onload = startRealtimeUpdates;
 </script>
 </body>
 </html>
