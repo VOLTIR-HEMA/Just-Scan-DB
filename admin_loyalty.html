@@ -267,6 +267,49 @@
 
     // بدء التحميل
     loadCustomers();
+    
+    // دالة لجلب العروض الحالية وعرضها للأدمن للحذف
+async function loadAdminOffers() {
+    const container = document.getElementById('admin-offers-list');
+    try {
+        const res = await fetch(`${DB_URL}/offers.json`);
+        const offers = await res.json();
+        container.innerHTML = '';
+
+        if(!offers) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد عروض نشطة حالياً.</p>';
+            return;
+        }
+
+        Object.keys(offers).forEach(id => {
+            const offer = offers[id];
+            const row = document.createElement('div');
+            row.className = 'user-row'; // نفس استايل الصفوف المظلمة بتاعك
+            row.innerHTML = `
+                <div class="user-info-brief">
+                    <b>🎯 ${offer.title}</b>
+                    <span>👥 مستهدف: ${offer.target} | الوصف: ${offer.desc}</span>
+                </div>
+                <button class="mini-btn" style="background: var(--danger); color: white;" onclick="deleteOffer('${id}')">🗑️ حذف العرض</button>
+            `;
+            container.appendChild(row);
+        });
+    } catch(e) { console.error(e); }
+}
+
+// دالة لحذف العرض نهائياً من قاعدة البيانات
+async function deleteOffer(id) {
+    if(!confirm("هل أنت متأكد من رغبتك في حذف هذا العرض نهائياً؟")) return;
+    try {
+        const res = await fetch(`${DB_URL}/offers/${id}.json`, { method: 'DELETE' });
+        if(res.ok) {
+            loadAdminOffers(); // إعادة تحديث القائمة
+        }
+    } catch(e) { console.error(e); }
+}
+
+// استدعي الدالة دي في نهاية الكود برضه عشان تشتغل أول ما تفتح الصفحة
+loadAdminOffers();
 </script>
 </body>
 </html>
