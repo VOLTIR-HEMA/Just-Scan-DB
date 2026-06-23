@@ -58,6 +58,8 @@
         .order-status { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
         .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
         .status-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .status-warning { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
     </style>
 </head>
 <body>
@@ -340,6 +342,7 @@
     }
 
     // جلب طلبات الأدوية وعرض حالاتها المحدثة من الأدمن
+   // جلب طلبات الأدوية وعرض حالاتها المحدثة من الأدمن
     async function loadMyOrders() {
         const container = document.getElementById('my-orders-container');
         try {
@@ -357,39 +360,36 @@
                 const ord = orders[id];
                 if (ord.phone === currentLoggedPhone) {
                     hasOrders = true;
-                    const div = document.createElement('div');
-                    div.className = 'order-item';
 
-                    let statusText = "⏳ قيد المراجعة والتحضير";
-                    // تحديد لون الحالة بناءً على الردود الجديدة من الأدمن
-                let statusClass = "status-pending";
-                if(o.status === "متوفر" || o.status === "متوفر بالصيدلية") statusClass = "status-success";
-                if(o.status === "غير متوفر") statusClass = "status-danger";
-                if(o.status === "تم طلبه") statusClass = "status-warning"; // لون أصفر/برتقالي للحالة الجديدة
+                    // تحديد لون الحالة بناءً على الردود القادمة من الأدمن
+                    let statusClass = "status-pending";
+                    if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية") statusClass = "status-success";
+                    if(ord.status === "غير متوفر") statusClass = "status-danger";
+                    if(ord.status === "تم طلبه") statusClass = "status-warning"; // لون أصفر/برتقالي للحالة الجديدة
 
-                const row = document.createElement('div');
-                row.className = 'order-card';
-                row.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(o.date).toLocaleDateString('ar-EG')}</span>
-                        ${(!o.status || o.status === "قيد المراجعة والتحضير" || o.status === "معلق") ? `
-                            <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
-                        ` : ''}
-                    </div>
-                    <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${o.details}</div>
-                    ${o.image ? `<div style="margin:5px 0;"><a href="${o.image}" target="_blank" style="color:var(--primary); font-size:0.85em;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
-                        <span class="status-badge ${statusClass}">⏳ ${o.status || 'قيد المراجعة والتحضير'}</span>
-                    </div>
-
-                    ${o.chat ? `
-                        <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
-                            <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${o.chat}</span>
+                    const row = document.createElement('div');
+                    row.className = 'order-item';
+                    row.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
+                            ${(!ord.status || ord.status === "قيد المراجعة والتحضير" || ord.status === "معلق") ? `
+                                <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
+                            ` : ''}
                         </div>
-                    ` : ''}
-                `;
-                container.appendChild(row);
+                        <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
+                        ${ord.image ? `<div style="margin:5px 0;"><a href="${ord.image}" target="_blank" style="color:var(--primary); font-size:0.85em;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
+                            <span class="status-badge ${statusClass}">⏳ ${ord.status || 'قيد المراجعة والتحضير'}</span>
+                        </div>
+
+                        ${ord.chat ? `
+                            <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
+                                <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${ord.chat}</span>
+                            </div>
+                        ` : ''}
+                    `;
+                    container.appendChild(row);
                 }
             });
 
@@ -400,7 +400,6 @@
             console.error("خطأ أثناء جلب الطلبات: ", e);
         }
     }
-
     // دوال مساعدة لتحويل الملفات ومتابعة الأسماء
     function convertFileToBase64(file) {
         return new Promise((resolve, reject) => {
@@ -474,7 +473,7 @@
             try {
                 await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
                 alert("✅ تم إلغاء وحذف الطلب بنجاح.");
-                loadUserOrders(); // إعادة تحديث القائمة عند العميل فوراً
+               loadMyOrders(); // إعادة تحديث القائمة عند العميل فوراً
             } catch(e) {
                 alert("خطأ أثناء إلغاء الطلب: " + e.message);
             }
