@@ -414,7 +414,8 @@ window.addEventListener('DOMContentLoaded', () => {
     async function loadMyOrders() {
         const container = document.getElementById('my-orders-container');
         try {
-            const res = await fetch(`${DB_URL}/medicine_orders.json`);
+            // تعديل السطر ده لكسر الكاش وإجبار الفايربيز يبعت الردود الجديدة حالا
+            const res = await fetch(`${DB_URL}/medicine_orders.json?t=${Date.now()}`);
             const orders = await res.json();
             container.innerHTML = '';
 
