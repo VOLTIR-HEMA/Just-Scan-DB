@@ -173,64 +173,15 @@
     let currentLoggedPhone = null;
     let compressedImageBase64 = ""; 
 
-   window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
         checkAnnouncement();
-        
         const savedPhone = localStorage.getItem('customer_phone');
         const savedPass = localStorage.getItem('customer_pass');
-        
-        // 1. لو الحساب محفوظ، انقل المستخدم فوراً جوه التطبيق بدون انتظار الـ fetch علشان الإشعارات وميرمش
         if (savedPhone && savedPass) {
-            currentLoggedPhone = savedPhone;
-            
-            // إخفاء شاشة الدخول وإظهار لوحة التحكم فوراً في أول جزء من الثانية
-            document.getElementById('login-ui').style.display = 'none';
-            document.getElementById('portal-ui').style.display = 'block';
-            
-            // تعبئة البيانات المبدئية من الـ localStorage لو حابب، أو سيبها تحمل في الخلفية
             document.getElementById('user-phone-input').value = savedPhone;
             document.getElementById('user-pass-input').value = savedPass;
-            
-            // تشغيل جلب البيانات الفعلي في الخلفية لتحديث النقاط والطلبات فوراً بدون ما يحس بـ ريستارت
             customerLoginProcess(true);
         }
-
-        // ========================================================
-        // 🌟 التحديث اللحظي الذكي لصفحة المستخدم (كل 3 ثوانٍ) 🌟
-        // ========================================================
-        setInterval(async () => {
-            const loggedInPhone = currentLoggedPhone || localStorage.getItem('customer_phone');
-            
-            if (loggedInPhone) {
-                try {
-                    if (typeof loadMyOrders === 'function') {
-                        await loadMyOrders();
-                    }
-                    
-                    if (typeof DB_URL !== 'undefined') {
-                        const res = await fetch(`${DB_URL}/customers/${loggedInPhone}.json`);
-                        const user = await res.json();
-                        if (user) {
-                            const pts = user.points || 0;
-                            const cash = Math.floor(pts / 10);
-
-                            if(document.getElementById('ui-holder-name')) {
-                                document.getElementById('ui-holder-name').innerText = user.name || "---";
-                            }
-                            if(document.getElementById('ui-points-val')) {
-                                document.getElementById('ui-points-val').innerText = pts;
-                            }
-                            if(document.getElementById('ui-cashback-val')) {
-                                document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cash} ج.م`;
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error("خطأ أثناء التحديث اللحظي في الخلفية:", error);
-                }
-            }
-        }, 3000);
-    });
         // تشغيل تحديث لحظي ذكي كل 3 ثوانٍ بدون ريفريش كامل وبدون استهلاك للإنترنت
 setInterval(async () => {
     // نتحقق أولاً أن العميل مسجل دخول حالياً وموجود داخل التطبيق
