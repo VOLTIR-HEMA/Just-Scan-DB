@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة نظام الولاء والعروض - لوحة التحكم</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; 
+            --primary-hover: #0ea5e9;
+            --bg: #0f172a; 
+            --card: #1e293b; 
+            --text: #f1f5f9; 
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; direction: rtl; }
+        .container { max-width: 1000px; margin: auto; }
+        h1, h2 { color: var(--primary); text-align: center; }
+        
+        .flex-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .section-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; flex: 1; min-width: 300px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-dim); }
+        .form-control { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); box-sizing: border-box; outline: none; }
+        .form-control:focus { border-color: var(--primary); }
+        
+        .btn { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 6px; color: var(--bg); font-weight: bold; cursor: pointer; font-size: 1em; transition: background 0.2s; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        .user-row { background: var(--card); border: 1px solid var(--border); margin-bottom: 10px; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .user-info-brief b { font-size: 1.1em; color: var(--primary); display: block; }
+        .user-info-brief span { font-size: 0.85em; color: var(--text-dim); }
+        
+        .points-badge { background: #334155; padding: 6px 12px; border-radius: 20px; font-weight: bold; color: #fbbf24; border: 1px solid #d97706; }
+        .actions-btn { display: flex; gap: 8px; }
+        .mini-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* Modal Style */
+        #pointsModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>لوحة تحكم الصيدلية - نظام الولاء والعروض 👨‍⚕️</h1>
+    <p style="text-align: center; color: var(--text-dim); margin-bottom: 30px;">إدارة نقاط العملاء واستهداف العروض الذكية</p>
+
+    <div class="flex-grid">
+        <div class="section-card">
+            <h2>➕ تسجيل عميل جديد</h2>
+            <div class="form-group">
+                <label>رقم موبايل العميل (ID)</label>
+                <input type="tel" id="cust-phone" class="form-control" placeholder="01xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>اسم العميل الثنائي</label>
+                <input type="text" id="cust-name" class="form-control" placeholder="محمد أحمد">
+            </div>
+            <div class="form-group">
+                <label>النوع (لتوجيه العروض الذكية)</label>
+                <select id="cust-gender" class="form-control">
+                    <option value="رجال">رجل</option>
+                    <option value="نساء">سيدة</option>
+                </select>
+            </div>
+            <button class="btn" onclick="registerCustomer()">🚀 إنشاء حساب العميل</button>
+        </div>
+
+        <div class="section-card">
+            <h2>🔥 إضافة عرض مخصّص</h2>
+            <div class="form-group">
+                <label>عنوان العرض / المنتج</label>
+                <input type="text" id="offer-title" class="form-control" placeholder="خصم 20% على حفاضات الأطفال">
+            </div>
+            <div class="form-group">
+                <label>تفاصيل ووصف العرض</label>
+                <input type="text" id="offer-desc" class="form-control" placeholder="العرض ساري حتى نهاية الأسبوع أو نفاد الكمية">
+            </div>
+            <div class="form-group">
+                <label>الفئة المستهدفة</label>
+                <select id="offer-target" class="form-control">
+                    <option value="الكل">الكل (يظهر للجميع)</option>
+                    <option value="رجال">رجال فقط</option>
+                    <option value="نساء">نساء فقط</option>
+                </select>
+            </div>
+            <button class="btn" style="background: #a855f7;" onclick="publishOffer()">📢 نشر العرض للعملاء</button>
+        </div>
+    </div>
+
+    <h2>👥 قائمة العملاء الحاليين وإدارة النقاط</h2>
+    <div class="form-group" style="max-width: 400px; margin: 0 auto 20px auto;">
+        <input type="text" id="search-input" class="form-control" placeholder="🔍 ابحث برقم الموبايل..." oninput="filterCustomers()">
+    </div>
+    
+    <div id="customers-list">
+        <p style="text-align: center; color: var(--text-dim);">جاري تحميل قائمة العملاء...</p>
+    </div>
+</div>
+
+<div id="pointsModal">
+    <div class="modal-content">
+        <h3 id="modal-title" style="color: var(--primary); margin-top: 0;">تعديل نقاط العميل</h3>
+        <p id="modal-subtitle" style="color: var(--text-dim); font-size: 0.9em;"></p>
+        <input type="hidden" id="modal-phone">
+        
+        <div class="form-group">
+            <label>النقاط المراد إضافتها (أو خصمها باستخدام علامة السلبي -)</label>
+            <input type="number" id="points-amount" class="form-control" placeholder="مثال: 50 أو -20">
+        </div>
+        
+        <div class="actions-btn">
+            <button class="btn" onclick="updatePointsProcess()">✅ حفظ وتحديث</button>
+            <button class="btn btn-danger" onclick="closeModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ استبدل هذا الرابط برابط الـ Realtime Database الجديد تماماً الخاص بك
+    const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/loyalty_system";
+
+    let allCustomers = {};
+
+    // تحميل العملاء عند فتح الصفحة
+    async function loadCustomers() {
+        try {
+            const res = await fetch(`${DB_URL}/customers.json`);
+            const data = await res.json();
+            allCustomers = data || {};
+            renderCustomers(allCustomers);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderCustomers(customers) {
+        const listDiv = document.getElementById('customers-list');
+        listDiv.innerHTML = '';
+        
+        const keys = Object.keys(customers);
+        if(keys.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا يوجد عملاء مسجلين حالياً.</p>';
+            return;
+        }
+
+        keys.forEach(phone => {
+            const user = customers[phone];
+            const row = document.createElement('div');
+            row.className = 'user-row';
+            row.setAttribute('data-phone', phone);
+            row.innerHTML = `
+                <div class="user-info-brief">
+                    <b>${user.name} (${user.gender})</b>
+                    <span>📱 ${phone}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="points-badge">${user.points || 0} نقطة</div>
+                    <div class="actions-btn">
+                        <button class="mini-btn" style="background: var(--primary); color: var(--bg);" onclick="openPointsModal('${phone}', '${user.name}', ${user.points || 0})">✏️ إدارة النقاط</button>
+                    </div>
+                </div>
+            `;
+            listDiv.appendChild(row);
+        });
+    }
+
+    // فلترة البحث
+    function filterCustomers() {
+        const query = document.getElementById('search-input').value.trim();
+        if(!query) { renderCustomers(allCustomers); return; }
+        
+        let filtered = {};
+        Object.keys(allCustomers).forEach(phone => {
+            if(phone.includes(query)) { filtered[phone] = allCustomers[phone]; }
+        });
+        renderCustomers(filtered);
+    }
+
+    // تسجيل عميل جديد
+    async function registerCustomer() {
+        const phone = document.getElementById('cust-phone').value.trim();
+        const name = document.getElementById('cust-name').value.trim();
+        const gender = document.getElementById('cust-gender').value;
+
+        if(!phone || !name) return alert("❌ برجاء ملء حقول الهاتف والاسم.");
+
+        const payload = { name: name, gender: gender, points: 0, joinDate: Date.now() };
+
+        try {
+            const res = await fetch(`${DB_URL}/customers/${phone}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert("🎉 تم تسجيل العميل الجديد بنجاح!");
+                document.getElementById('cust-phone').value = '';
+                document.getElementById('cust-name').value = '';
+                loadCustomers();
+            }
+        } catch(e) { alert("خطأ: " + e.message); }
+    }
+
+    // نشر عرض جديد
+    async function publishOffer() {
+        const title = document.getElementById('offer-title').value.trim();
+        const desc = document.getElementById('offer-desc').value.trim();
+        const target = document.getElementById('offer-target').value;
+
+        if(!title || !desc) return alert("❌ برجاء ملء بيانات العرض.");
+
+        const payload = { title: title, desc: desc, target: target, date: Date.now() };
+
+        try {
+            const res = await fetch(`${DB_URL}/offers.json`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert("📢 تم نشر العرض بنجاح وسيظهر للفئة المستهدفة!");
+                document.getElementById('offer-title').value = '';
+                document.getElementById('offer-desc').value = '';
+            }
+        } catch(e) { alert("خطأ: " + e.message); }
+    }
+
+    // إدارة النوافذ المنبثقة
+    function openPointsModal(phone, name, currentPoints) {
+        document.getElementById('modal-phone').value = phone;
+        document.getElementById('modal-title').innerText = `إدارة نقاط العميل: ${name}`;
+        document.getElementById('modal-subtitle').innerText = `النقاط الحالية: ${currentPoints} نقطة`;
+        document.getElementById('points-amount').value = '';
+        document.getElementById('pointsModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('pointsModal').style.display = 'none'; }
+
+    async function updatePointsProcess() {
+        const phone = document.getElementById('modal-phone').value;
+        const amount = parseInt(document.getElementById('points-amount').value);
+        if(!amount) return alert("برجاء إدخال قيمة صحيحة.");
+
+        const currentPoints = allCustomers[phone].points || 0;
+        const newPoints = Math.max(0, currentPoints + amount); // لا تسمح بنقاط تحت الصفر
+
+        try {
+            const res = await fetch(`${DB_URL}/customers/${phone}/points.json`, {
+                method: 'PUT',
+                body: JSON.stringify(newPoints)
+            });
+            if(res.ok) {
+                closeModal();
+                loadCustomers();
+            }
+        } catch(e) { alert("خطأ: " + e.message); }
+    }
+
+    // بدء التحميل
+    loadCustomers();
+</script>
+</body>
+</html>
