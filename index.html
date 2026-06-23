@@ -3,603 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مساعد الصيدلية الذكي</title>
+    <title>بوابة عملاء صيدلية د. إبراهيم الرقمية</title>
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --primary: #38bdf8;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --gold: #fbbf24;
         }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: system-ui, sans-serif; background-color: #000; color: var(--text-main); margin: 0; padding: 0; direction: rtl; }
+        .wrapper { max-width: 500px; margin: auto; padding: 15px; }
+        
+        /* Login Screen style */
+        .login-box { background: var(--card-bg); border: 1px solid var(--border); padding: 30px 20px; border-radius: 16px; text-align: center; margin-top: 50px; }
+        .input-phone { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: #fff; font-size: 1.2em; text-align: center; outline: none; margin-bottom: 20px; }
+        .input-phone:focus { border-color: var(--primary); }
+        
+        .btn-action { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 8px; color: var(--bg-dark); font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        
+        /* Main Portal UI (Hidden before login) */
+        #portal-ui { display: none; }
+        
+        .loyalty-card { background: linear-gradient(135deg, #1e3a8a, #0f172a); border: 2px solid var(--primary); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.2); margin-bottom: 25px; }
+        .card-brand { font-size: 1.2em; font-weight: bold; color: var(--primary); margin-bottom: 15px; }
+        .card-holder { font-size: 1.4em; font-weight: bold; margin-bottom: 5px; }
+        .card-phone { font-size: 0.9em; color: var(--text-dim); }
+        .points-display { text-align: left; margin-top: 10px; }
+        .points-num { font-size: 2.2em; font-weight: bold; color: var(--gold); }
+        .cashback-val { font-size: 1em; color: #22c55e; margin-top: 5px; }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f9;
-            color: #333;
-            padding-bottom: 70px;
-        }
-
-        /* Top Header */
-        .header {
-            background: linear-gradient(135deg, #0f52ba, #1e3c72);
-            color: #fff;
-            padding: 20px 15px;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .header-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .profile-avatar {
-            width: 45px;
-            height: 45px;
-            background-color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #0f52ba;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .profile-info h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .profile-info p {
-            margin: 2px 0 0 0;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        /* Budget Card */
-        .budget-card {
-            background: #fff;
-            margin: 15px;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .budget-title {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .progress-container {
-            background-color: #eef2f5;
-            border-radius: 8px;
-            height: 12px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            background: linear-gradient(90deg, #ff9900, #ff5500);
-            height: 100%;
-            width: 0%;
-            border-radius: 8px;
-            transition: width 0.5s ease;
-        }
-
-        .budget-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .stat-spent { color: #ff5500; }
-        .stat-left { color: #2ecc71; }
-
-        .page-content {
-            padding: 0 15px;
-        }
-
-        .app-section {
-            display: none;
-        }
-
-        .app-section.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .form-input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccd6dd;
-            border-radius: 8px;
-            font-size: 14px;
-            background-color: #fff;
-            outline: none;
-        }
-
-        .form-input:focus, select:focus {
-            border-color: #0f52ba;
-        }
-
-        .btn {
-            background-color: #0f52ba;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .autocomplete-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1px solid #ccd6dd;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            font-size: 13px;
-            border-bottom: 1px solid #f0f4f7;
-        }
-
-        .suggestion-item:hover {
-            background-color: #f0f4f7;
-        }
-
-        .suggestion-add-new {
-            background-color: #fff9e6;
-            color: #b77c00;
-            font-weight: bold;
-        }
-
-        .card-item {
-            background: #fff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-details h4 {
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            color: #2c3e50;
-        }
-
-        .card-details p {
-            margin: 0;
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-
-        .counter-badge {
-            background-color: #e74c3c;
-            color: #fff;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .amount-badge-out { color: #e74c3c; font-weight: bold; font-size: 14px; }
-        .amount-badge-in { color: #2ecc71; font-weight: bold; font-size: 14px; }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #fff;
-            border-top: 1px solid #e0e0e0;
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 999;
-        }
-
-        .nav-item {
-            display: table-cell;
-            text-align: center;
-            vertical-align: middle;
-            color: #7f8c8d;
-            text-decoration: none;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: #0f52ba;
-            font-weight: bold;
-        }
-
-        .nav-icon {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .section-title {
-            font-size: 15px;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            color: #2c3e50;
-            border-right: 4px solid #0f52ba;
-            padding-right: 8px;
-        }
+        .offer-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-right: 5px solid var(--primary); }
+        .offer-card h3 { margin: 0 0 5px 0; font-size: 1.1em; color: var(--primary); }
+        .offer-card p { margin: 0; font-size: 0.9em; color: var(--text-dim); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="header-profile">
-            <div class="profile-avatar">👨‍⚕️</div>
-            <div class="profile-info">
-                <h3>د. إبراهيم</h3>
-                <p>صيدليتك الذكية في جيبك</p>
+<div class="wrapper">
+    
+    <div id="login-ui" class="login-box">
+        <h2 style="color: var(--primary); margin-top: 0;">مرحباً بك في صيدليتك ✨</h2>
+        <p style="color: var(--text-dim); font-size: 0.95em; margin-bottom: 25px;">ادخل رقم الموبايل المسجل لدينا لمتابعة نقاطك وعروضك الحصرية</p>
+        <input type="tel" id="user-phone-input" class="input-phone" placeholder="01xxxxxxxxx">
+        <button class="btn-action" onclick="customerLoginProcess()">🎯 دخول واستعراض الحساب</button>
+    </div>
+
+    <div id="portal-ui">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span style="font-weight: bold; color: var(--primary);">حساب الولاء الرقمي 💳</span>
+            <button onclick="location.reload()" style="background:none; border:none; color: var(--text-dim); cursor:pointer; font-size:0.9em;">🚪 خروج</button>
+        </div>
+
+        <div class="loyalty-card">
+            <div class="card-brand">صيدلية د. إبراهيم الذكية</div>
+            <div class="card-holder" id="ui-holder-name">--- ---</div>
+            <div class="card-phone" id="ui-holder-phone">01xxxxxxxxx</div>
+            <div class="points-display">
+                <span>رصيد النقاط الحالية:</span>
+                <div class="points-num" id="ui-points-val">0</div>
+                <div class="cashback-val" id="ui-cashback-val">💸 الخصم المالي المتاح لك: 0 ج.م</div>
             </div>
+        </div>
+
+        <h2 style="font-size: 1.2em; border-right: 3px solid var(--primary); padding-right: 8px; color: var(--primary); margin-bottom: 15px;">📢 عروض حصرية مخصصة لك اليوم</h2>
+        <div id="offers-container">
+            <p style="color: var(--text-dim); text-align: center;">جاري تصفية العروض المخصصة لك...</p>
         </div>
     </div>
 
-    <div class="budget-card">
-        <div class="budget-title">
-            <span>مؤشر السيولة اليومي (الدرج vs المصاريف)</span>
-            <span id="budgetPercent">0%</span>
-        </div>
-        <div class="progress-container">
-            <div class="progress-bar" id="budgetProgressBar"></div>
-        </div>
-        <div class="budget-stats">
-            <div>الخارج اليوم: <span class="stat-spent" id="spentVal">0 ج.م</span></div>
-            <div>صافي الدرج: <span class="stat-left" id="netVal">0 ج.م</span></div>
-        </div>
-    </div>
+</div>
 
-    <div class="page-content">
+<script>
+    // ⚠️ تأكد أن هذا الرابط مطابق تماماً للرابط في صفحة الـ Admin الجديدة
+    const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/loyalty_system";
 
-        <div id="page-dashboard" class="app-section active">
-            <div class="section-title">الملخص المالي لشهر يونيو 2026</div>
-            
-            <div class="form-group" style="background:#fff; padding:12px; border-radius:8px; margin-bottom:15px; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                <label style="font-weight:bold; color:#0f52ba;">إدخال إيراد الدرج اليومي</label>
-                <div style="display:flex; gap:8px; margin-top:5px;">
-                    <input type="number" id="dailyRevenueInput" class="form-input" placeholder="اكتب إجمالي الإيراد بالجنيه">
-                    <button class="btn" style="width:auto; padding:0 20px;" onclick="saveDailyRevenue()">حفظ</button>
-                </div>
-            </div>
+    async function customerLoginProcess() {
+        const phone = document.getElementById('user-phone-input').value.trim();
+        if(!phone) return alert("برجاء إدخال رقم الموبايل أولاً.");
 
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>إجمالي المبيعات المستلمة</h4>
-                    <p>مجموع الإيرادات اليومية المدخلة</p>
-                </div>
-                <div class="amount-badge-in" id="totalRevenueBadge">0 ج.م</div>
-            </div>
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>إجمالي المشتريات والشركات</h4>
-                    <p>فواتير ابن سينا، المتحدة، إلخ</p>
-                </div>
-                <div class="amount-badge-out" id="totalPharmaBadge">0 ج.م</div>
-            </div>
-            <div class="card-item">
-                <div class="card-details">
-                    <h4>الالتزامات الثابتة والنواثر</h4>
-                    <p>الرواتب + الإيجار + مصاريف التشغيل</p>
-                </div>
-                <div class="amount-badge-out" id="totalExpensesBadge">0 ج.m</div>
-            </div>
-        </div>
+        try {
+            // جلب بيانات العميل المحدّد برقم موبايله
+            const res = await fetch(`${DB_URL}/customers/${phone}.json`);
+            const user = await res.json();
 
-        <div id="page-shortages" class="app-section">
-            <div class="section-title">إدخال النواقص الذكي</div>
-            <div class="form-group">
-                <label for="drugInput">اسم الصنف أو التركيز (عربي / إنجليزي)</label>
-                <input type="text" id="drugInput" class="form-input" placeholder="اكتب أول حروف مثل Panadol..." autocomplete="off">
-                <div class="autocomplete-suggestions" id="suggestionsBox"></div>
-            </div>
-            <button class="btn" onclick="addDrugFromInput()">تسجيل نقص / زيادة العداد +1</button>
-
-            <div class="section-title">الأصناف الأكثر طلباً ونقصاً 💥</div>
-            <div class="data-list" id="shortagesList">
-                <p style="text-align:center; color:#999;">جاري تحميل النواقص من Firebase...</p>
-            </div>
-        </div>
-
-        <div id="page-expenses" class="app-section">
-            <div class="section-title">تسجيل حركة ماليّة (الخارج)</div>
-            
-            <div class="form-group">
-                <label>التصنيف الرئيسي</label>
-                <select id="expCategory">
-                    <option value="شركات">فواتير شركات الأدوية</option>
-                    <option value="رواتب">رواتب وسلف موظفين</option>
-                    <option value="إيجار">إيجار الصيدلية الشهري</option>
-                    <option value="نواثر">مصاريف نثرية وتصليحات</option>
-                    <option value="شخصي">مسحوبات شخصية</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>المبلغ (ج.م)</label>
-                <input type="number" id="expAmount" class="form-input" placeholder="0.00">
-            </div>
-
-            <div class="form-group">
-                <label>البيان والتفاصيل (الفلوس خرجت فين؟)</label>
-                <input type="text" id="expDetails" class="form-input" placeholder="مثال: فاتورة ابن سينا، سلفة أحمد...">
-            </div>
-
-            <button class="btn" onclick="logExpense()">حفظ المعاملة بالتفصيل</button>
-
-            <div class="section-title">آخر حركات الخروج المفسّرة</div>
-            <div class="data-list" id="expensesHistory">
-                <p style="text-align:center; color:#999;">جاري تحميل المصاريف...</p>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('dashboard', this)">
-            <span class="nav-icon">📊</span>الرئيسية
-        </div>
-        <div class="nav-item" onclick="switchTab('shortages', this)">
-            <span class="nav-icon">📋</span>النواقص
-        </div>
-        <div class="nav-item" onclick="switchTab('expenses', this)">
-            <span class="nav-icon">💸</span>المصاريف
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, query, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // بيانات مشروعك الحقيقية التي أرسلتها
-        const firebaseConfig = {
-            apiKey: "AIzaSyB4hRnaIq3Dn4o8cqgTVk3vg_XXmwyqOlA",
-            authDomain: "my-assistant-7c330.firebaseapp.com",
-            projectId: "my-assistant-7c330",
-            storageBucket: "my-assistant-7c330.firebasestorage.app",
-            messagingSenderId: "509561059857",
-            appId: "1:509561059857:web:edeb6a4a2526f15bb00fb0",
-            measurementId: "G-ZPM602TWDY"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // قاموس أدوية محلي مبدئي للبحث السريع
-        let localMedicinesDB = [
-            "Panadol Extra 500mg", "Panadol Joint", "Danyst 8mg/4ml Ampoule",
-            "Ancella Cox 90mg", "Stimula N 400mg", "Dolphin 75mg Suppository", "Cocast 4mg"
-        ];
-
-        // تحميل قائمة الأدوية الإضافية من الـ Firebase للبحث الذكي
-        async function loadMedicinesDictionary() {
-            try {
-                const snap = await getDocs(collection(db, "medicines_list"));
-                snap.forEach(doc => {
-                    const name = doc.data().name;
-                    if(!localMedicinesDB.includes(name)) localMedicinesDB.push(name);
-                });
-            } catch(e) { console.error(e); }
-        }
-        loadMedicinesDictionary();
-
-        // منطق البحث الذكي (Autocomplete)
-        const drugInput = document.getElementById('drugInput');
-        const suggestionsBox = document.getElementById('suggestionsBox');
-
-        drugInput.addEventListener('input', function() {
-            const val = this.value.trim();
-            suggestionsBox.innerHTML = '';
-            if (!val) { suggestionsBox.style.display = 'none'; return; }
-
-            const filtered = localMedicinesDB.filter(med => med.toLowerCase().includes(val.toLowerCase()));
-            filtered.slice(0, 5).forEach(med => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerText = med;
-                div.onclick = function() { drugInput.value = med; suggestionsBox.style.display = 'none'; };
-                suggestionsBox.appendChild(div);
-            });
-
-            if (!localMedicinesDB.some(med => med.toLowerCase() === val.toLowerCase())) {
-                const addNewDiv = document.createElement('div');
-                addNewDiv.className = 'suggestion-item suggestion-add-new';
-                addNewDiv.innerText = `➕ إضافة "${val}" كصنف جديد دائم`;
-                addNewDiv.onclick = async function() {
-                    await addDoc(collection(db, "medicines_list"), { name: val });
-                    localMedicinesDB.push(val);
-                    suggestionsBox.style.display = 'none';
-                    alert(`تم حفظ "${val}" في قاموس الصيدلية بنجاح!`);
-                };
-                suggestionsBox.appendChild(addNewDiv);
+            if(!user) {
+                return alert("❌ عذراً، هذا الرقم غير مسجل في نظام الولاء لدينا. برجاء الطلب من الصيدلي تسجيلك أولاً.");
             }
-            suggestionsBox.style.display = 'block';
-        });
 
-        // إغلاق المنسدلة عند الضغط في أي مكان
-        document.addEventListener('click', (e) => { if(e.target !== drugInput) suggestionsBox.style.display = 'none'; });
-
-        // إضافة دواء ناقص أو تكراره مع زيادة العداد
-        window.addDrugFromInput = async function() {
-            const val = drugInput.value.trim();
-            if(!val) return alert('برجاء كتابة أو اختيار اسم دواء أولاً');
-
-            try {
-                const q = query(collection(db, "shortages"), where("name", "==", val));
-                const querySnap = await getDocs(q);
-
-                if(!querySnap.empty) {
-                    const existingDoc = querySnap.docs[0];
-                    await updateDoc(doc(db, "shortages", existingDoc.id), {
-                        demand_count: increment(1),
-                        last_requested: new Date()
-                    });
-                } else {
-                    await addDoc(collection(db, "shortages"), {
-                        name: val,
-                        demand_count: 1,
-                        last_requested: new Date()
-                    });
-                }
-                drugInput.value = '';
-                alert('تم تسجيل النقص وتحديث العداد بنجاح!');
-            } catch(e) { alert('خطأ في الحفظ: ' + e.message); }
-        };
-
-        // تسجيل حركة ماليّة (خارج)
-        window.logExpense = async function() {
-            const cat = document.getElementById('expCategory').value;
-            const amt = parseFloat(document.getElementById('expAmount').value);
-            const det = document.getElementById('expDetails').value.trim();
-
-            if(!amt || !det) return alert('برجاء ملء خانة المبلغ والبيان التفصيلي');
-
-            try {
-                await addDoc(collection(db, "transactions"), {
-                    type: "out",
-                    category: cat,
-                    amount: amt,
-                    details: det,
-                    date: new Date()
-                });
-                document.getElementById('expAmount').value = '';
-                document.getElementById('expDetails').value = '';
-                alert('تم حفظ المعاملة بنجاح!');
-            } catch(e) { alert('خطأ في الحفظ: ' + e.message); }
-        };
-
-        // تسجيل إيراد الدرج اليومي
-        window.saveDailyRevenue = async function() {
-            const amt = parseFloat(document.getElementById('dailyRevenueInput').value);
-            if(!amt) return alert('برجاء إدخال مبلغ صحيح');
-
-            try {
-                await addDoc(collection(db, "transactions"), {
-                    type: "in",
-                    category: "إيراد يومي",
-                    amount: amt,
-                    details: "إيراد درج الصيدلية الإجمالي",
-                    date: new Date()
-                });
-                document.getElementById('dailyRevenueInput').value = '';
-                alert('تم حفظ الإيراد اليومي بنجاح!');
-            } catch(e) { alert('خطأ: ' + e.message); }
-        };
-
-        // الاستماع الفوري لتحديثات الحسابات والماليات (Realtime Sync)
-        onSnapshot(collection(db, "transactions"), (snap) => {
-            let totalIn = 0; let totalPharma = 0; let totalExpenses = 0;
-            let todayOut = 0; let todayIn = 0;
-            const historyBox = document.getElementById('expensesHistory');
-            historyBox.innerHTML = '';
-
-            const todayStr = new Date().toDateString();
-
-            snap.forEach(doc => {
-                const data = doc.data();
-                const amt = data.amount || 0;
-                const txDate = data.date ? data.date.toDate() : new Date();
-
-                if(data.type === "in") {
-                    totalIn += amt;
-                    if(txDate.toDateString() === todayStr) todayIn += amt;
-                } else {
-                    if(data.category === "شركات") totalPharma += amt;
-                    else totalExpenses += amt;
-
-                    if(txDate.toDateString() === todayStr) todayOut += amt;
-
-                    // عرض قائمة الحركات في صفحة المصاريف
-                    const item = document.createElement('div');
-                    item.className = 'card-item';
-                    item.innerHTML = `<div class="card-details"><h4>${data.details}</h4><p>تصنيف: ${data.category}</p></div><div class="amount-badge-out">${amt} ج.م</div>`;
-                    historyBox.appendChild(item);
-                }
-            });
-
-            // تحديث واجهة الأرقام
-            document.getElementById('totalRevenueBadge').innerText = `${totalIn.toLocaleString()} ج.م`;
-            document.getElementById('totalPharmaBadge').innerText = `${totalPharma.toLocaleString()} ج.م`;
-            document.getElementById('totalExpensesBadge').innerText = `${totalExpenses.toLocaleString()} ج.م`;
-
-            // حساب مؤشر السيولة اليومي للدرج
-            document.getElementById('spentVal').innerText = `${todayOut.toLocaleString()} ج.م`;
-            document.getElementById('netVal').innerText = `${(todayIn - todayOut).toLocaleString()} ج.م`;
+            // عرض البيانات في الكارت الديجيتال
+            document.getElementById('ui-holder-name').innerText = user.name;
+            document.getElementById('ui-holder-phone').innerText = phone;
             
-            let percent = 0;
-            if (todayIn > 0) percent = Math.min(Math.round((todayOut / todayIn) * 100), 100);
-            document.getElementById('budgetPercent').innerText = `${percent}%`;
-            document.getElementById('budgetProgressBar').style.width = `${percent}%`;
-        });
+            const points = user.points || 0;
+            document.getElementById('ui-points-val').innerText = points;
+            
+            // معادلة حساب الخصم: كل 10 نقاط تساوي 1 جنيه خصم (تقدر تغير النسبة دي براحتك)
+            const cashBack = Math.floor(points / 10);
+            document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cashBack} ج.م`;
 
-        // الاستماع الفوري لقسم النواقص مرتبة حسب الأكثر طلباً
-        const shortagesQuery = query(collection(db, "shortages"), orderBy("demand_count", "desc"), limit(15));
-        onSnapshot(shortagesQuery, (snap) => {
-            const list = document.getElementById('shortagesList');
-            list.innerHTML = '';
-            if(snap.empty) { list.innerHTML = '<p style="text-align:center; color:#999;">لا توجد نواقص مسجلة حالياً</p>'; return; }
+            // إخفاء شاشة الدخول وإظهار شاشة البوابة والبطاقة
+            document.getElementById('login-ui').style.display = 'none';
+            document.getElementById('portal-ui').style.display = 'block';
 
-            snap.forEach(doc => {
-                const data = doc.data();
-                const item = document.createElement('div');
-                item.className = 'card-item';
-                item.innerHTML = `<div class="card-details"><h4>${data.name}</h4><p>صيدلية د. إبراهيم</p></div><div class="counter-badge">اتطلب ${data.demand_count} مرات</div>`;
-                list.appendChild(item);
-            });
-        });
-    </script>
+            // جلب وفلترة العروض الذكية بناءً على فئة العميل (رجال / نساء)
+            loadAndFilterOffers(user.gender);
 
-    <script>
-        // دالة التنقل بين الشاشات
-        function switchTab(pageId, element) {
-            document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            element.classList.add('active');
+        } catch(e) {
+            alert("خطأ في الاتصال بالشبكة: " + e.message);
         }
-    </script>
+    }
+
+    async function loadAndFilterOffers(customerGender) {
+        const container = document.getElementById('offers-container');
+        container.innerHTML = '';
+
+        try {
+            const res = await fetch(`${DB_URL}/offers.json`);
+            const offers = await res.json();
+
+            if(!offers) {
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">لا توجد عروض منشورة حالياً.</p>';
+                return;
+            }
+
+            let hasOffers = false;
+
+            Object.keys(offers).forEach(id => {
+                const offer = offers[id];
+                
+                // 🧠 الفلترة والذكاء التجاري: العرض يظهر لو مستهدف "الكل" أو متطابق تماماً مع جنس العميل
+                if(offer.target === "الكل" || offer.target === customerGender) {
+                    hasOffers = true;
+                    const card = document.createElement('div');
+                    card.className = 'offer-card';
+                    card.innerHTML = `
+                        <h3>${offer.title}</h3>
+                        <p>${offer.desc}</p>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+
+            if(!hasOffers) {
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">لا توجد عروض متوفرة لفئتك حالياً.</p>';
+            }
+
+        } catch(e) {
+            container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل العروض.</p>';
+        }
+    }
+</script>
 </body>
 </html>
