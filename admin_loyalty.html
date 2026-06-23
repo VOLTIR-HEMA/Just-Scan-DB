@@ -194,7 +194,8 @@
 
 <script>
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
-
+    
+    let isTyping = false;
     let allCustomers = {};
 
     // دالة إخفاء وإظهار الأقسام لتقليل الازدحام على الموبايل
@@ -420,6 +421,14 @@
         try {
             const res = await fetch(`${DB_URL}/medicine_orders.json`);
             const orders = await res.json();
+            if(orders) {
+                for (const id in orders) {
+                    if (orders[id].autoDelete && orders[id].deleteAt && Date.now() > orders[id].deleteAt) {
+                        await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
+                        delete orders[id]; // مسحه من القائمة الحالية للعرض
+                    }
+                }
+            }
             container.innerHTML = '';
 
             if(!orders) {
@@ -466,8 +475,16 @@
                         <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
                         <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
                         <button class="mini-btn" style="background:#fbbf24; color:#000;" onclick="updateOrderStatus('${id}', 'تم طلبه')">📦 تم طلبه للعيادة</button>
-                        <input type="text" id="chat-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" placeholder="اكتب رداً أو شات للزبون..." value="${o.chat || ''}">
-                        <button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💬 إرسال رد</button>
+                        <input type="text" id="chat-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" 
+       placeholder="اكتب رداً مخصصاً للزبون..." value="${o.chat || ''}"
+       onfocus="isTyping = true" onblur="isTyping = false">
+
+<button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💾 حفظ الرد داخلياً</button>
+
+<button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="deleteOrder('${id}')">🗑️ حذف الطلب</button>
+<button class="mini-btn" style="background:#f97316; color:#fff;" onclick="toggleAutoDelete('${id}')" id="autodel-btn-${id}">
+    ${o.autoDelete ? '⏳ حذف تلقائي (مفعّل)' : '🕒 حذف تلقائي (أسبوع)'}
+</button>
                     </div>
                 `;
                 container.appendChild(row);
@@ -616,7 +633,10 @@
         loadCurrentAnnouncement();
 
         // فحص دوري ذكي ومتقارب جداً (كل ثانيتين) لتحديث الشاشة والإشعارات بدون تهنيج
-        setInterval(async () => {
+       setInterval(async () => {
+            if (typeof isTyping !== 'undefined' && isTyping) {
+                return; // لو بيكتب ميعملش تحديث وميختفيش الكلام
+            }
             await loadAdminOrders();
             await loadPendingRequests();
         }, 2000);
@@ -624,6 +644,48 @@
 
     // تشغيل الميكانيزم فور تحميل الصفحة
     window.onload = startRealtimeUpdates;
+
+    // دالة حذف الطلب فوراً
+    async function deleteOrder(id) {
+        const confirm = await Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم حذف هذا الطلب نهائياً من النظام!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'نعم، احذفه',
+            cancelButtonText: 'إلغاء'
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
+                Swal.fire('تم الحذف', 'تم إزالة الطلب بنجاح.', 'success');
+                loadAdminOrders();
+            } catch(e) { console.error(e); }
+        }
+    }
+
+    // دالة تفعيل/إلغاء الحذف التلقائي بعد أسبوع
+    async function toggleAutoDelete(id) {
+        try {
+            const res = await fetch(`${DB_URL}/medicine_orders/${id}.json`);
+            const order = await res.json();
+            const currentStatus = order.autoDelete || false;
+            
+            // لو مش مفعّل هنخليه مفعّل ونحسب تاريخ الحذف (تاريخ اليوم + 7 أيام بالملي ثانية)
+            const newStatus = !currentStatus;
+            const deleteAt = newStatus ? (Date.now() + (7 * 24 * 60 * 60 * 1000)) : null;
+
+            await fetch(`${DB_URL}/medicine_orders/${id}/autoDelete.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
+            await fetch(`${DB_URL}/medicine_orders/${id}/deleteAt.json`, { method: 'PUT', body: JSON.stringify(deleteAt) });
+
+            Swal.fire('تحديث الحذف التلقائي', newStatus ? '⏳ سيتم حذف هذا الطلب تلقائياً بعد أسبوع من الآن.' : '🛑 تم إلغاء الحذف التلقائي للطلب.', 'success');
+            loadAdminOrders();
+        } catch(e) { console.error(e); }
+    }
+    
 </script>
 </body>
 </html>
