@@ -24,7 +24,13 @@
         .input-phone:focus { border-color: var(--primary); }
         
         .btn-action { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 8px; color: var(--bg-dark); font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        
+        .btn-secondary { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+.btn-secondary:hover { color: var(--primary); border-color: var(--primary); }
+
+/* ستايل نافذة إنشاء حساب جديد المنبثقة */
+#registerModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px; }
+.modal-content { background: var(--card-bg); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.modal-content h3 { margin-top: 0; color: var(--primary); text-align: center; }
         /* Main Portal UI (Hidden before login) */
         #portal-ui { display: none; }
         
@@ -47,9 +53,13 @@
     
     <div id="login-ui" class="login-box">
         <h2 style="color: var(--primary); margin-top: 0;">مرحباً بك في صيدليتك ✨</h2>
-        <p style="color: var(--text-dim); font-size: 0.95em; margin-bottom: 25px;">ادخل رقم الموبايل المسجل لدينا لمتابعة نقاطك وعروضك الحصرية</p>
-        <input type="tel" id="user-phone-input" class="input-phone" placeholder="01xxxxxxxxx">
+        <p style="color: var(--text-dim); font-size: 0.95em; margin-bottom: 25px;">ادخل رقم الموبايل وكلمة المرور لمتابعة نقاطك وعروضك الحصرية بأمان</p>
+        
+        <input type="tel" id="user-phone-input" class="input-phone" placeholder="📱 رقم الموبايل (01xxxxxxxxx)">
+        <input type="password" id="user-pass-input" class="input-phone" placeholder="🔑 كلمة المرور" style="font-size: 1em; margin-bottom: 25px;">
+        
         <button class="btn-action" onclick="customerLoginProcess()">🎯 دخول واستعراض الحساب</button>
+        <button class="btn-secondary" onclick="openRegisterModal()">✨ إنشاء حساب جديد (تقديم طلب)</button>
     </div>
 
     <div id="portal-ui">
@@ -74,7 +84,24 @@
             <p style="color: var(--text-dim); text-align: center;">جاري تصفية العروض المخصصة لك...</p>
         </div>
     </div>
-
+<div id="registerModal">
+        <div class="modal-content">
+            <h3>📝 طلب إنشاء حساب جديد</h3>
+            <p style="color: var(--text-dim); font-size: 0.85em; text-align: center; margin-bottom: 20px;">سيتم إرسال طلبك للأدمن للمراجعة والتفعيل خلال 24 ساعة.</p>
+            
+            <input type="text" id="reg-name" class="input-phone" placeholder="👤 الاسم الثنائي" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <input type="tel" id="reg-phone" class="input-phone" placeholder="📱 رقم الموبايل" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <input type="password" id="reg-pass" class="input-phone" placeholder="🔑 اختر كلمة مرور" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            
+            <select id="reg-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
+                <option value="رجال">الجنس: رجل</option>
+                <option value="نساء">الجنس: سيدة</option>
+            </select>
+            
+            <button class="btn-action" onclick="submitRegisterRequest()">🚀 تقديم الطلب الآن</button>
+            <button class="btn-secondary" style="margin-top: 10px;" onclick="closeRegisterModal()">إلغاء</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -83,39 +110,34 @@
 
     async function customerLoginProcess() {
         const phone = document.getElementById('user-phone-input').value.trim();
-        if(!phone) return alert("برجاء إدخال رقم الموبايل أولاً.");
+        const password = document.getElementById('user-pass-input').value.trim();
+        
+        if(!phone || !password) return alert("برجاء إدخال رقم الموبايل وكلمة المرور.");
 
         try {
-            // جلب بيانات العميل المحدّد برقم موبايله
+            // 1. أولاً: نفحص هل الحساب مسجل ومقبول في النظام الرسمي؟
             const res = await fetch(`${DB_URL}/customers/${phone}.json`);
             const user = await res.json();
 
             if(!user) {
-                return alert("❌ عذراً، هذا الرقم غير مسجل في نظام الولاء لدينا. برجاء الطلب من الصيدلي تسجيلك أولاً.");
+                // 2. إذا لم يكن بالسيستم، نفحص هل هو لسه "معلق" في طلبات الإنشاء؟
+                const reqRes = await fetch(`${DB_URL}/pending_requests/${phone}.json`);
+                const pendingReq = await reqRes.json();
+                
+                if(pendingReq) {
+                    if(pendingReq.status === "معلق") {
+                        return alert("⏳ طلبك قيد المراجعة حالياً. الرجاء انتظار مراجعة الطلب من قبل الإدارة خلال 24 ساعة.");
+                    } else if(pendingReq.status === "مرفوض") {
+                        return alert("❌ نأسف، تم رفض طلب إنشاء الحساب هذا من قبل الإدارة.");
+                    }
+                }
+                return alert("❌ عذراً، هذا الرقم غير مسجل. يمكنك تقديم طلب إنشاء حساب جديد بالضغط على الزر بالأسفل.");
             }
 
-            // عرض البيانات في الكارت الديجيتال
-            document.getElementById('ui-holder-name').innerText = user.name;
-            document.getElementById('ui-holder-phone').innerText = phone;
-            
-            const points = user.points || 0;
-            document.getElementById('ui-points-val').innerText = points;
-            
-            // معادلة حساب الخصم: كل 10 نقاط تساوي 1 جنيه خصم (تقدر تغير النسبة دي براحتك)
-            const cashBack = Math.floor(points / 10);
-            document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cashBack} ج.م`;
-
-            // إخفاء شاشة الدخول وإظهار شاشة البوابة والبطاقة
-            document.getElementById('login-ui').style.display = 'none';
-            document.getElementById('portal-ui').style.display = 'block';
-
-            // جلب وفلترة العروض الذكية بناءً على فئة العميل (رجال / نساء)
-            loadAndFilterOffers(user.gender);
-
-        } catch(e) {
-            alert("خطأ في الاتصال بالشبكة: " + e.message);
-        }
-    }
+            // 3. التحقق من صحة كلمة المرور الآمنة
+            if(user.password !== password) {
+                return alert("❌ كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.");
+            }
 
     async function loadAndFilterOffers(customerGender) {
         const container = document.getElementById('offers-container');
@@ -156,6 +178,55 @@
             container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل العروض.</p>';
         }
     }
+         // دوال فتح وإغلاق نافذة تقديم الطلب
+    function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+    function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+
+    // إرسال طلب إنشاء الحساب إلى فرع pending_requests ليتفاعل مع الأدمن
+    async function submitRegisterRequest() {
+        const name = document.getElementById('reg-name').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        const password = document.getElementById('reg-pass').value.trim();
+        const gender = document.getElementById('reg-gender').value;
+
+        if(!name || !phone || !password) {
+            return alert("❌ برجاء ملء جميع الحقول المطلوبة لتقديم الطلب.");
+        }
+
+        // فحص هل الحساب موجود مسبقاً قبل التقديم
+        try {
+            const checkRes = await fetch(`${DB_URL}/customers/${phone}.json`);
+            const existingUser = await checkRes.json();
+            if(existingUser) {
+                return alert("❌ هذا الرقم مسجل بالفعل في النظام! يمكنك تسجيل الدخول مباشرة.");
+            }
+
+            const payload = {
+                name: name,
+                password: password,
+                gender: gender,
+                status: "معلق", // الحالة الافتراضية للطلب
+                requestDate: Date.now()
+            };
+
+            // إرسال الطلب للأدمن عبر قاعدة البيانات دون المساس بالعملاء الفعليين مباشرة
+            const res = await fetch(`${DB_URL}/pending_requests/${phone}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                alert("⏳ تم تقديم طلب إنشاء حساب بنجاح! الرجاء انتظار مراجعة الطلب، سيتم المراجعة وتفعيل الحساب خلال الـ 24 ساعة القادمة.");
+                closeRegisterModal();
+                // تفريغ الخانات لراحة المستخدم
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-phone').value = '';
+                document.getElementById('reg-pass').value = '';
+            }
+        } catch(e) {
+            alert("خطأ أثناء إرسال الطلب: " + e.message);
+        }
+    }   
 </script>
 </body>
 </html>
