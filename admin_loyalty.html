@@ -511,7 +511,7 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
 </div>
 <div style="margin:10px 0; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; width:100%; box-sizing:border-box;">
     <p style="margin:0; font-weight:bold; color:#fff;">💊 محتوى الطلب: ${o.details}</p>
-    ${o.image ? `<div style="margin-top:10px;"><a href="${o.image}" target="_blank" style="color:var(--primary); font-weight:bold;">🖼️ اضغط لفتح صورة الروشتة</a></div>` : ''}
+   ${o.image ? `<div style="margin-top:10px;"><span onclick="openImageViewer('${o.image}')" style="color:var(--primary); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">🖼️ اضغط لمعاينة الروشتة هنا</span></div>` : ''}
                     </div>
                     <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
 
@@ -738,20 +738,23 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
 
 <script>
     // دالة فتح عارض الصور الداخلي
-    function openImageViewer(base64Src) {
-        if(!base64Src) {
-            Swal.fire({ icon: 'error', title: 'عفواً', text: 'الصورة غير متوفرة أو تالفة.', background: '#1e293b', color: '#f1f5f9' });
-            return;
-        }
-        document.getElementById('viewerTargetImage').src = base64Src;
-        document.getElementById('customImageViewer').style.display = 'flex';
+   function openImageViewer(base64Src) {
+    if(!base64Src) {
+        Swal.fire({ icon: 'error', title: 'عفواً', text: 'الصورة غير متوفرة أو تالفة.', background: '#1e293b', color: '#f1f5f9' });
+        return;
     }
+    document.getElementById('viewerTargetImage').src = base64Src;
+    document.getElementById('customImageViewer').style.display = 'flex';
+}
 
-    // دالة إغلاق عارض الصور
-    function closeImageViewer() {
-        document.getElementById('customImageViewer').style.style.display = 'none';
-        document.getElementById('viewerTargetImage').src = '';
-    }
+function closeImageViewer() {
+    document.getElementById('customImageViewer').style.display = 'none';
+    document.getElementById('viewerTargetImage').src = '';
+}
 </script>
+    <div id="customImageViewer" class="image-viewer-modal">
+    <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
+    <img id="viewerTargetImage" class="image-viewer-content" src="" alt="روشتة العميل">
+</div>
 </body>
 </html>
