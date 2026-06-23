@@ -258,6 +258,34 @@
 
             document.getElementById('login-ui').style.display = 'none';
             document.getElementById('portal-ui').style.display = 'block';
+            // فحص وإظهار الرسالة الخاصة أو العرض الموجه لهذا المستخدم فقط من خلال ديالوج منبثق
+            if (user.privateMessage || user.privateOffer) {
+                let dialogHtml = '';
+                
+                if (user.privateMessage) {
+                    dialogHtml += `<div style="background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: right;">
+                        <b style="color: #38bdf8; display: block; margin-bottom: 5px;">📬 رسالة خاصة لك:</b>
+                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateMessage}</p>
+                    </div>`;
+                }
+                
+                if (user.privateOffer) {
+                    dialogHtml += `<div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; padding: 12px; border-radius: 8px; text-align: right;">
+                        <b style="color: #22c55e; display: block; margin-bottom: 5px;">🎁 عرض حصري لك:</b>
+                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateOffer}</p>
+                    </div>`;
+                }
+
+                Swal.fire({
+                    title: `أهلاً بك يا ${user.name || 'عميلنا العزيز'}`,
+                    html: dialogHtml,
+                    icon: 'info',
+                    confirmButtonText: 'دخول الحساب',
+                    confirmButtonColor: '#38bdf8',
+                    background: '#1e293b',
+                    color: '#f1f5f9'
+                });
+            }
 
             loadAndFilterOffers(user.gender || "الكل");
             loadMyOrders();
