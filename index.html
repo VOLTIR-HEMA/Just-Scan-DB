@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>بوابة عملاء صيدلية د. إبراهيم الرقمية</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary: #38bdf8;
@@ -140,6 +141,7 @@
 
     // فحص تلقائي عند فتح الصفحة لجلب الجلسة المحفوظة لمنع تسجيل الخروج عند الـ Refresh
     window.addEventListener('DOMContentLoaded', () => {
+        checkAnnouncement();
         const savedPhone = localStorage.getItem('customer_phone');
         const savedPass = localStorage.getItem('customer_pass');
         if (savedPhone && savedPass) {
@@ -149,6 +151,41 @@
         }
     });
 
+    async function checkAnnouncement() {
+    try {
+        // جلب الرسالة من قاعدة البيانات
+        const res = await fetch(`https://my-assistant-7c330-default-rtdb.firebaseio.com/announcement.json`);
+        const data = await res.json();
+        
+        // التأكد من وجود نص للرسالة وأنها ليست فارغة
+        if (data && data.text) {
+            
+            // جلب آخر رسالة تم عرضها للمستخدم من الـ LocalStorage (علشان ما تظهرش كل ثانية وتضايقه)
+            const lastSeen = localStorage.getItem('last_announcement');
+            
+            // إذا كانت الرسالة جديدة أو لم يشاهدها من قبل بناءً على وقت التحديث
+            if (lastSeen !== data.updatedAt.toString()) {
+                
+                // إظهار الرسالة للعميل بشكل جذاب
+                Swal.fire({
+                    title: '📢 إعلان هام',
+                    text: data.text,
+                    icon: 'info',
+                    confirmButtonText: 'مفهوم',
+                    confirmButtonColor: '#38bdf8', // لون متناسق مع نظامك الأزرق
+                    background: '#1e293b', // لون الخلفية الداكنة المتناسق مع التصميم
+                    color: '#f1f5f9'
+                }).then(() => {
+                    // حفظ وقت الرسالة في متصفح العميل حتى لا تظهر له مرة أخرى إلا إذا قمت أنت بتحديثها
+                    localStorage.setItem('last_announcement', data.updatedAt);
+                });
+            }
+        }
+    } catch (e) {
+        console.error("خطأ في جلب الرسالة الافتتاحية:", e);
+    }
+}
+    
     async function customerLoginProcess(isAuto = false) {
         const phone = document.getElementById('user-phone-input').value.trim();
         const password = document.getElementById('user-pass-input').value.trim();
@@ -205,6 +242,7 @@
             
             // جلب طلبات الأدوية الخاصة بهذا العميل
             loadMyOrders();
+            checkAnnouncement();
 
         } catch (e) {
             alert("خطأ أثناء تسجيل الدخول: " + e.message);
