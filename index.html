@@ -6,6 +6,35 @@
     <title>بوابة عملاء صيدلية د. إبراهيم الرقمية</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* ستايل عارض الصور الداخلي الاحترافي */
+        .image-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-viewer-content {
+            max-width: 90%;
+            max-height: 85%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .image-viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
         :root {
             --primary: #38bdf8;
             --bg-dark: #0f172a;
@@ -55,7 +84,7 @@
         .file-input-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .file-label { background: #334155; border: 1px solid var(--border); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.95em; color: var(--text-main); font-weight: bold; }
         .order-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 0.95em; }
-        .order-status { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
         .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
         .status-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
         .status-warning { background: rgba(249, 115, 22, 0.2); color: #f97316; }
@@ -97,10 +126,13 @@
         <h2 style="font-size: 1.2em; border-right: 3px solid var(--primary); padding-right: 8px; color: var(--primary); margin-bottom: 15px;">📦 اطلب أدويتك الآن (كتابة أو روشتة)</h2>
         <div class="order-box">
             <textarea id="order-text" class="textarea-order" placeholder="اكتب أسماء الأدوية المطلوبة هنا أو أي ملاحظات للصيدلية..."></textarea>
-            <div class="file-input-wrapper">
-                <label for="order-file" class="file-label">📷 تصوير أو إرفاق الروشتة</label>
-                <input type="file" id="order-file" accept="image/*" style="display: none;" onchange="updateFileNameDisplay()">
-                <span id="file-name-display" style="font-size: 0.85em; color: var(--text-dim);">لم يتم اختيار صورة</span>
+            <div class="file-input-wrapper" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="order-file" class="file-label">📷 تصوير أو إرفاق الروشتة</label>
+                    <input type="file" id="order-file" accept="image/*" style="display: none;" onchange="processAndDisplayFile()">
+                    <span id="file-name-display" style="font-size: 0.85em; color: var(--text-dim);">لم يتم اختيار صورة</span>
+                </div>
+                <button id="btn-remove-file" type="button" onclick="removeSelectedFile()" style="display: none; background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold;">❌ حذف الصورة المختارة</button>
             </div>
             <button class="btn-action" style="padding: 12px; font-size: 1em;" onclick="submitMedicineOrder()">🚀 إرسال الطلب للصيدلية</button>
         </div>
@@ -137,11 +169,10 @@
 </div>
 
 <script>
-    // ⚠️ تأكد أن هذا الرابط مطابق تماماً للرابط في صفحة الـ Admin الجديدة
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
     let currentLoggedPhone = null;
+    let compressedImageBase64 = ""; 
 
-    // فحص تلقائي عند فتح الصفحة لجلب الجلسة المحفوظة لمنع تسجيل الخروج عند الـ Refresh
     window.addEventListener('DOMContentLoaded', () => {
         checkAnnouncement();
         const savedPhone = localStorage.getItem('customer_phone');
@@ -154,79 +185,69 @@
     });
 
     async function checkAnnouncement() {
-    try {
-        // جلب الرسالة من قاعدة البيانات
-        const res = await fetch(`https://my-assistant-7c330-default-rtdb.firebaseio.com/announcement.json`);
-        const data = await res.json();
-        
-        // التأكد من وجود نص للرسالة وأنها ليست فارغة
-        if (data && data.text) {
-            
-            // جلب آخر رسالة تم عرضها للمستخدم من الـ LocalStorage (علشان ما تظهرش كل ثانية وتضايقه)
-            const lastSeen = localStorage.getItem('last_announcement');
-            
-            // إذا كانت الرسالة جديدة أو لم يشاهدها من قبل بناءً على وقت التحديث
-            if (lastSeen !== data.updatedAt.toString()) {
-                
-                // إظهار الرسالة للعميل بشكل جذاب
-                Swal.fire({
-                    title: '📢 إعلان هام',
-                    text: data.text,
-                    icon: 'info',
-                    confirmButtonText: 'مفهوم',
-                    confirmButtonColor: '#38bdf8', // لون متناسق مع نظامك الأزرق
-                    background: '#1e293b', // لون الخلفية الداكنة المتناسق مع التصميم
-                    color: '#f1f5f9'
-                }).then(() => {
-                    // حفظ وقت الرسالة في متصفح العميل حتى لا تظهر له مرة أخرى إلا إذا قمت أنت بتحديثها
-                    localStorage.setItem('last_announcement', data.updatedAt);
-                });
+        try {
+            const res = await fetch(`${DB_URL}/announcement.json`);
+            const data = await res.json();
+            if (data && data.text) {
+                const lastSeen = localStorage.getItem('last_announcement');
+                if (lastSeen !== data.updatedAt.toString()) {
+                    Swal.fire({
+                        title: '📢 إعلان هام',
+                        text: data.text,
+                        icon: 'info',
+                        confirmButtonText: 'مفهوم',
+                        confirmButtonColor: '#38bdf8', 
+                        background: '#1e293b', 
+                        color: '#f1f5f9'
+                    }).then(() => {
+                        localStorage.setItem('last_announcement', data.updatedAt);
+                    });
+                }
             }
+        } catch (e) {
+            console.error("خطأ في جلب الرسالة الافتتاحية:", e);
         }
-    } catch (e) {
-        console.error("خطأ في جلب الرسالة الافتتاحية:", e);
     }
-}
     
     async function customerLoginProcess(isAuto = false) {
         const phone = document.getElementById('user-phone-input').value.trim();
         const password = document.getElementById('user-pass-input').value.trim();
         
-        if(!phone || !password) return ("برجاء إدخال رقم الموبايل وكلمة المرور.");
+        if(!phone || !password) {
+            if(!isAuto) {
+                Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'برجاء إدخال رقم الموبايل وكلمة المرور.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+            return;
+        }
 
         try {
-            // 1. أولاً: نفحص هل الحساب مسجل ومقبول في النظام الرسمي؟
             const res = await fetch(`${DB_URL}/customers/${phone}.json`);
             const user = await res.json();
 
             if(!user) {
-                // 2. إذا لم يكن بالسيستم، نفحص هل هو لسه "معلق" في طلبات الإنشاء؟
                 const reqRes = await fetch(`${DB_URL}/pending_requests/${phone}.json`);
                 const pendingReq = await reqRes.json();
                 
                 if(pendingReq) {
                     if(pendingReq.status === "معلق") {
-                        return alert("⏳ طلبك قيد المراجعة حالياً. الرجاء انتظار مراجعة الطلب من قبل الإدارة خلال 24 ساعة.");
+                        return Swal.fire({ icon: 'clock', title: 'طلبك قيد المراجعة', text: '⏳ طلبك قيد المراجعة حالياً. الرجاء انتظار تفعيل الحساب من قبل الإدارة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
                     } else if(pendingReq.status === "مرفوض") {
-                        return alert("❌ نأسف، تم رفض طلب إنشاء الحساب هذا من قبل الإدارة.");
+                        return Swal.fire({ icon: 'error', title: 'عفواً', text: '❌ نأسف، تم رفض طلب إنشاء الحساب هذا من قبل الإدارة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
                     }
                 }
                 if (!isAuto) localStorage.clear();
-                return alert("❌ عذراً، هذا الرقم غير مسجل. يمكنك تقديم طلب إنشاء حساب جديد بالضغط على الزر بالأسفل.");
+                return Swal.fire({ icon: 'info', title: 'غير مسجل', text: '❌ عذراً، هذا الرقم غير مسجل. يمكنك تقديم طلب إنشاء حساب جديد بالضغط على الزر بالأسفل.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
             }
 
-            // 3. التحقق من صحة كلمة المرور الآمنة
             if(user.password !== password) {
                 if (!isAuto) localStorage.clear();
-                return alert("❌ كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.");
+                return Swal.fire({ icon: 'error', title: 'خطأ', text: '❌ كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
             }
 
-            // حفظ الجلسة داخل الـ localStorage لمنع طلب تسجيل الدخول عند الـ Refresh
             localStorage.setItem('customer_phone', phone);
             localStorage.setItem('customer_pass', password);
             currentLoggedPhone = phone;
 
-            // حساب الكاش باك المالي بشكل صحيح (مثال: كل 10 نقاط تساوي 1 جنيه)
             const pts = user.points || 0;
             const cash = Math.floor(pts / 10);
 
@@ -235,23 +256,17 @@
             document.getElementById('ui-points-val').innerText = pts;
             document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cash} ج.م`;
 
-            // إخفاء شاشة تسجيل الدخول وإظهار لوحة التحكم
             document.getElementById('login-ui').style.display = 'none';
             document.getElementById('portal-ui').style.display = 'block';
 
-            // جلب العروض وتصفيتها حسب جنس العميل المكتشف
             loadAndFilterOffers(user.gender || "الكل");
-            
-            // جلب طلبات الأدوية الخاصة بهذا العميل
             loadMyOrders();
-            checkAnnouncement();
 
         } catch (e) {
-            alert("خطأ أثناء تسجيل الدخول: " + e.message);
+            console.error(e);
         }
     }
 
-    // دالة تسجيل الخروج ومسح الذاكرة
     function logoutCustomer() {
         localStorage.clear();
         location.reload();
@@ -271,11 +286,8 @@
             }
 
             let hasOffers = false;
-
             Object.keys(offers).forEach(id => {
                 const offer = offers[id];
-                
-                // 🧠 الفلترة والذكاء التجاري: العرض يظهر لو مستهدف "الكل" أو متطابق تماماً مع جنس العميل
                 if(offer.target === "الكل" || offer.target === customerGender) {
                     hasOffers = true;
                     const card = document.createElement('div');
@@ -291,35 +303,24 @@
             if(!hasOffers) {
                 container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">لا توجد عروض متوفرة لفئتك حالياً.</p>';
             }
-
         } catch(e) {
             container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل العروض.</p>';
         }
     }
 
-    // إرسال طلب أدوية جديد لقاعدة البيانات
     async function submitMedicineOrder() {
         const textVal = document.getElementById('order-text').value.trim();
         const fileInput = document.getElementById('order-file');
 
-        if (!textVal && (!fileInput.files || fileInput.files.length === 0)) {
-            return alert("❌ يرجى كتابة الأدوية المطلوبة أو إرفاق صورة الروشتة أولاً.");
-        }
-
-        let base64Img = "";
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            if (file.size > 1024 * 1024 * 2) {
-                return alert("❌ حجم الصورة كبير جداً، يرجى اختيار صورة أصغر من 2 ميجابايت.");
-            }
-            base64Img = await convertFileToBase64(file);
+        if (!textVal && !compressedImageBase64) {
+            return Swal.fire({ icon: 'warning', title: 'طلب فارغ', text: '❌ يرجى كتابة الأدوية المطلوبة أو إرفاق صورة الروشتة أولاً.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
         }
 
         const payload = {
             phone: currentLoggedPhone,
             details: textVal || "تم إرفاق صورة الروشتة",
-            image: base64Img,
-            status: "معلق", // الحالة الافتراضية
+            image: compressedImageBase64 || "",
+            status: "معلق", 
             date: Date.now()
         };
 
@@ -330,19 +331,16 @@
             });
 
             if (res.ok) {
-                alert("🎉 تم إرسال طلبك بنجاح وجاري مراجعته وتجهيزه داخل الصيدلية!");
+                Swal.fire({ icon: 'success', title: 'تم الإرسال', text: '🎉 تم إرسال طلبك بنجاح وجاري مراجعته وتجهيزه داخل الصيدلية!', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
                 document.getElementById('order-text').value = '';
-                document.getElementById('order-file').value = '';
-                document.getElementById('file-name-display').innerText = "لم يتم اختيار صورة";
-                loadMyOrders(); // تحديث القائمة فوراً
+                removeSelectedFile();
+                loadMyOrders(); 
             }
         } catch (e) {
-            alert("❌ خطأ أثناء إرسال الطلب: " + e.message);
+            Swal.fire({ icon: 'error', title: 'خطأ', text: '❌ خطأ أثناء إرسال الطلب: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
         }
     }
 
-    // جلب طلبات الأدوية وعرض حالاتها المحدثة من الأدمن
-   // جلب طلبات الأدوية وعرض حالاتها المحدثة من الأدمن
     async function loadMyOrders() {
         const container = document.getElementById('my-orders-container');
         try {
@@ -361,12 +359,10 @@
                 if (ord.phone === currentLoggedPhone) {
                     hasOrders = true;
 
-                    // تحديد لون الحالة بناءً على الردود القادمة من الأدمن
-                    // تحديد لون الحالة بناءً على الردود الجديدة من الأدمن
                     let statusClass = "status-pending";
                     if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية") statusClass = "status-success";
                     if(ord.status === "غير متوفر") statusClass = "status-danger";
-                    if(ord.status === "تم طلبه") statusClass = "status-warning"; // لون أصفر/برتقالي للحالة الجديدة
+                    if(ord.status === "تم طلبه") statusClass = "status-warning"; 
  
                     const row = document.createElement('div');
                     row.className = 'order-item';
@@ -377,10 +373,10 @@
                         </div>
                         <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
                         
-                        ${ord.image ? `<div style="margin:5px 0;"><a href="${ord.image}" target="_blank" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
+                        ${ord.image ? `<div style="margin:5px 0;"><span onclick="openImageViewer('${ord.image}')" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline; cursor:pointer;">🖼️ عرض الروشتة المرفقة</span></div>` : ''}
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
-                            <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد Mراجعة والتحضير'}</span>
+                            <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد المراجعة والتحضير'}</span>
                         </div>
 
                         ${ord.chat ? `
@@ -400,29 +396,57 @@
             console.error("خطأ أثناء جلب الطلبات: ", e);
         }
     }
-    // دوال مساعدة لتحويل الملفات ومتابعة الأسماء
-    function convertFileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    }
 
-    function updateFileNameDisplay() {
+    function processAndDisplayFile() {
         const input = document.getElementById('order-file');
         const display = document.getElementById('file-name-display');
+        const removeBtn = document.getElementById('btn-remove-file');
+        
         if (input.files && input.files[0]) {
-            display.innerText = "✔️ تم اختيار الروشتة بنجاح";
+            const file = input.files[0];
+            display.innerText = "⏳ جاري معالجة وضغط الصورة...";
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 1024;
+                    
+                    if (width > height) {
+                        if (width > max_size) { height *= max_size / width; width = max_size; }
+                    } else {
+                        if (height > max_size) { width *= max_size / height; height = max_size; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    display.innerText = "✔️ تم تجهيز الروشتة بنجاح";
+                    removeBtn.style.display = "inline-block";
+                };
+            };
         }
     }
 
-    // دوال فتح وإغلاق نافذة تقديم الطلب
+    function removeSelectedFile() {
+        document.getElementById('order-file').value = "";
+        document.getElementById('file-name-display').innerText = "لم يتم اختيار صورة";
+        document.getElementById('btn-remove-file').style.display = "none";
+        compressedImageBase64 = ""; 
+    }
+
     function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
     function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
 
-    // إرسال طلب إنشاء الحساب إلى فرع pending_requests ليتفاعل مع الأدمن
     async function submitRegisterRequest() {
         const name = document.getElementById('reg-name').value.trim();
         const phone = document.getElementById('reg-phone').value.trim();
@@ -430,53 +454,49 @@
         const gender = document.getElementById('reg-gender').value;
 
         if(!name || !phone || !password) {
-            return alert("❌ برجاء ملء جميع الحقول المطلوبة لتقديم الطلب.");
+            return Swal.fire({ icon: 'warning', title: 'حقول ناقصة', text: '❌ برجاء ملء جميع الحقول المطلوبة لتقديم الطلب.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
         }
 
-        // فحص هل الحساب موجود مسبقاً قبل التقديم
         try {
             const checkRes = await fetch(`${DB_URL}/customers/${phone}.json`);
             const existingUser = await checkRes.json();
             if(existingUser) {
-                return alert("❌ هذا الرقم مسجل بالفعل في النظام! يمكنك تسجيل الدخول مباشرة.");
+                return Swal.fire({ icon: 'info', title: 'مسجل بالفعل', text: '❌ هذا الرقم مسجل بالفعل في النظام! يمكنك تسجيل الدخول مباشرة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
             }
 
             const payload = {
                 name: name,
                 password: password,
                 gender: gender,
-                status: "معلق", // الحالة الافتراضية للطلب
+                status: "معلق", 
                 requestDate: Date.now()
             };
 
-            // إرسال الطلب للأدمن عبر قاعدة البيانات دون المساس بالعملاء الفعليين مباشرة
             const res = await fetch(`${DB_URL}/pending_requests/${phone}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(payload)
             });
 
             if(res.ok) {
-                alert("⏳ تم تقديم طلب إنشاء حساب بنجاح! الرجاء انتظار مراجعة الطلب، سيتم المراجعة وتفعيل الحساب خلال الـ 24 ساعة القادمة.");
+                Swal.fire({ icon: 'success', title: 'تم تقديم الطلب', text: '⏳ تم تقديم طلب إنشاء حساب بنجاح! الرجاء انتظار مراجعة وتفعيل الحساب خلال الـ 24 ساعة القادمة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
                 closeRegisterModal();
-                // تفريغ الخانات لراحة المستخدم
                 document.getElementById('reg-name').value = '';
                 document.getElementById('reg-phone').value = '';
                 document.getElementById('reg-pass').value = '';
             }
         } catch(e) {
-            alert("خطأ أثناء إرسال الطلب: " + e.message);
+            Swal.fire({ icon: 'error', title: 'خطأ', text: 'خطأ أثناء إرسال الطلب: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
         }
     }   
-    // دالة تمكن المستخدم من إلغاء وحذف طلبه مباشرة من حسابه
-    // دالة تمكن المستخدم من إلغاء وحذف طلبه مباشرة من حسابه باستخدام SweetAlert2
+
     async function cancelMyOrder(id) {
         Swal.fire({
             title: 'هل أنت متأكد؟',
             text: "هل تريد حقاً إلغاء وحذف هذا الطلب نهائياً؟",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444', // لون الحذف الأحمر
-            cancelButtonColor: '#334155',  // لون الإلغاء الداكن
+            confirmButtonColor: '#ef4444', 
+            cancelButtonColor: '#334155',  
             confirmButtonText: 'نعم، احذفه',
             cancelButtonText: 'تراجع',
             background: '#1e293b',
@@ -493,7 +513,7 @@
                         background: '#1e293b',
                         color: '#f1f5f9'
                     });
-                    loadMyOrders(); // تحديث القائمة فوراً بعد الحذف
+                    loadMyOrders(); 
                 } catch(e) {
                     Swal.fire({
                         title: 'خطأ!',
@@ -507,6 +527,26 @@
             }
         });
     }
+
+    function openImageViewer(base64Src) {
+        if(!base64Src) {
+            Swal.fire({ icon: 'error', title: 'عفواً', text: 'الصورة غير متوفرة أو تالفة.', background: '#1e293b', color: '#f1f5f9' });
+            return;
+        }
+        document.getElementById('viewerTargetImage').src = base64Src;
+        document.getElementById('customImageViewer').style.display = 'flex';
+    }
+
+    function closeImageViewer() {
+        document.getElementById('customImageViewer').style.display = 'none';
+        document.getElementById('viewerTargetImage').src = '';
+    }
 </script>
+
+<div id="customImageViewer" class="image-viewer-modal">
+    <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
+    <img id="viewerTargetImage" class="image-viewer-content" src="" alt="الروشتة">
+</div>
+
 </body>
 </html>
