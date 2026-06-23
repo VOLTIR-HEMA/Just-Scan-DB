@@ -172,8 +172,7 @@
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
     let currentLoggedPhone = null;
     let compressedImageBase64 = ""; 
-
-    window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
         checkAnnouncement();
         const savedPhone = localStorage.getItem('customer_phone');
         const savedPass = localStorage.getItem('customer_pass');
@@ -182,41 +181,49 @@
             document.getElementById('user-pass-input').value = savedPass;
             customerLoginProcess(true);
         }
-        // تشغيل تحديث لحظي ذكي كل 3 ثوانٍ بدون ريفريش كامل وبدون استهلاك للإنترنت
-setInterval(async () => {
-    // نتحقق أولاً أن العميل مسجل دخول حالياً وموجود داخل التطبيق
-    const loggedInPhone = localStorage.getItem('userPhone') || (typeof currentCustomerPhone !== 'undefined' ? currentCustomerPhone : null);
-    
-    if (loggedInPhone) {
-        try {
-            // 1. تحديث الرسالة الافتتاحية فوراً لو الأدمن عدّلها
-            if (typeof loadMainAnnouncement === 'function') {
-                await loadMainAnnouncement();
-            }
+
+        // 🚀 تشغيل التحديث اللحظي الذكي كل 3 ثوانٍ بعد مطابقة المتغيرات والعناصر
+        setInterval(async () => {
+            // استخدام المتغير الحالي أو المحفوظ في ملفك بالظبط
+            const loggedInPhone = currentLoggedPhone || localStorage.getItem('customer_phone');
             
-            // 2. تحديث طلبات الأدوية، الشات المخصص، وحالة الطلبات فوراً
-            if (typeof loadMyOrders === 'function') {
-                await loadMyOrders();
-            }
-            
-            // 3. تحديث نقاط العميل لو الأدمن زوّدها أو نقصها في نفس اللحظة
-            if (typeof DB_URL !== 'undefined') {
-                const res = await fetch(`${DB_URL}/customers/${loggedInPhone}.json`);
-                const userData = await res.json();
-                if (userData) {
-                    // تحديث النقاط على الشاشة مباشرة
-                    // تأكد من اسم كلاس أو معرف الـ div الخاص بالنقاط عندك (مثلاً: user-points)
-                    const pointsElement = document.getElementById('user-points') || document.querySelector('.points-badge');
-                    if (pointsElement) {
-                        pointsElement.innerText = `${userData.points || 0} نقطة`;
+            if (loggedInPhone) {
+                try {
+                    // 1. تحديث الرسالة الافتتاحية فوراً بالدالة الصحيحة في ملفك
+                    if (typeof checkAnnouncement === 'function') {
+                        await checkAnnouncement();
                     }
+                    
+                    // 2. تحديث طلبات الأدوية وحالة الطلبات فوراً
+                    if (typeof loadMyOrders === 'function') {
+                        await loadMyOrders();
+                    }
+                    
+                    // 3. تحديث نقاط العميل والخصم المالي فوراً من قاعدة البيانات
+                    if (typeof DB_URL !== 'undefined') {
+                        const res = await fetch(`${DB_URL}/customers/${loggedInPhone}.json?t=${Date.now()}`);
+                        const userData = await res.json();
+                        if (userData) {
+                            const pts = userData.points || 0;
+                            const cash = Math.floor(pts / 10);
+
+                            // تحديث العناصر الحقيقية الموجودة في صفحتك
+                            if (document.getElementById('ui-points-val')) {
+                                document.getElementById('ui-points-val').innerText = pts;
+                            }
+                            if (document.getElementById('ui-cashback-val')) {
+                                document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cash} ج.م`;
+                            }
+                            if (document.getElementById('ui-holder-name')) {
+                                document.getElementById('ui-holder-name').innerText = userData.name || "---";
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("خطأ أثناء التحديث اللحظي في الخلفية:", error);
                 }
             }
-        } catch (error) {
-            console.error("خطأ أثناء التحديث اللحظي في الخلفية:", error);
-        }
-    }
-}, 3000); // 3000 ملي ثانية تعني كل 3 ثوانٍ (سرعة ممتازة وموفرة للإنترنت)
+        }, 3000); 
     });
 
     async function checkAnnouncement() {
