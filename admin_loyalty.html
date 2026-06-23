@@ -5,6 +5,35 @@
     <title>إدارة نظام الولاء والعروض - لوحة التحكم</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* ستايل عارض الصور الداخلي الاحترافي */
+.image-viewer-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+.image-viewer-content {
+    max-width: 90%;
+    max-height: 85%;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+.image-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+}
         :root { 
             --primary: #38bdf8; 
             --primary-hover: #0ea5e9;
@@ -178,6 +207,15 @@
         <div class="form-group">
             <label style="color: #fbbf24;">تعديل كلمة المرور للعميل</label>
             <input type="text" id="modal-new-password" class="form-control" placeholder="اكتب الباسورد الجديد هنا">
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+    <label style="color: #38bdf8;">📬 رسالة خاصة لهذا العميل (تظهر له وحده)</label>
+    <textarea id="modal-private-msg" class="form-control" rows="2" placeholder="اكتب رسالة خاصة تظهر للعميل فوراً عند دخوله..."></textarea>
+</div>
+
+<div class="form-group">
+    <label style="color: #22c55e;">🎁 عرض خاص وحصري لهذا العميل فقط</label>
+    <textarea id="modal-private-offer" class="form-control" rows="2" placeholder="مثال: خصم 50% على المنتج القادم ليك أنت بس..."></textarea>
+</div>
         </div>
 
         <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
@@ -322,6 +360,8 @@
         
         document.getElementById('points-amount').value = '';
         document.getElementById('modal-new-password').value = user.password || '';
+        document.getElementById('modal-private-msg').value = user.privateMessage || '';
+document.getElementById('modal-private-offer').value = user.privateOffer || '';
 
         document.getElementById('pointsModal').style.display = 'flex';
     }
@@ -338,6 +378,8 @@
         const updatedGender = document.getElementById('modal-customer-gender').value;
         const newPass = document.getElementById('modal-new-password').value.trim();
         const amountInput = document.getElementById('points-amount').value.trim();
+        const privateMsg = document.getElementById('modal-private-msg').value.trim();
+        const privateOffer = document.getElementById('modal-private-offer').value.trim();
         
         if(!updatedName) {
             return Swal.fire('تنبيه', '❌ لا يمكن ترك اسم العميل فارغاً.', 'warning');
@@ -353,12 +395,14 @@
 
             // تجهيز البيانات بالكامل لإرسالها دفعة واحدة
             const payload = {
-                ...currentCustomer,
-                name: updatedName,
-                gender: updatedGender,
-                password: newPass ? newPass : (currentCustomer.password || ''),
-                points: finalPoints
-            };
+    ...currentCustomer,
+    name: updatedName,
+    gender: updatedGender,
+    password: newPass ? newPass : (currentCustomer.password || ''),
+    points: finalPoints,
+    privateMessage: privateMsg,
+    privateOffer: privateOffer
+};
 
             // رفع البيانات المحدثة إلى حساب العميل مباشرة في الفايربيز
             const res = await fetch(`${DB_URL}/customers/${phone}.json`, { 
@@ -686,6 +730,28 @@
         } catch(e) { console.error(e); }
     }
     
+</script>
+    <div id="customImageViewer" class="image-viewer-modal">
+    <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
+    <img id="viewerTargetImage" class="image-viewer-content" src="" alt="الروشتة">
+</div>
+
+<script>
+    // دالة فتح عارض الصور الداخلي
+    function openImageViewer(base64Src) {
+        if(!base64Src) {
+            Swal.fire({ icon: 'error', title: 'عفواً', text: 'الصورة غير متوفرة أو تالفة.', background: '#1e293b', color: '#f1f5f9' });
+            return;
+        }
+        document.getElementById('viewerTargetImage').src = base64Src;
+        document.getElementById('customImageViewer').style.display = 'flex';
+    }
+
+    // دالة إغلاق عارض الصور
+    function closeImageViewer() {
+        document.getElementById('customImageViewer').style.style.display = 'none';
+        document.getElementById('viewerTargetImage').src = '';
+    }
 </script>
 </body>
 </html>
