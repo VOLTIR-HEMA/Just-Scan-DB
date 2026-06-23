@@ -361,25 +361,35 @@
                     div.className = 'order-item';
 
                     let statusText = "⏳ قيد المراجعة والتحضير";
-                    let statusClass = "status-pending";
+                    // تحديد لون الحالة بناءً على الردود الجديدة من الأدمن
+                let statusClass = "status-pending";
+                if(o.status === "متوفر" || o.status === "متوفر بالصيدلية") statusClass = "status-success";
+                if(o.status === "غير متوفر") statusClass = "status-danger";
+                if(o.status === "تم طلبه") statusClass = "status-warning"; // لون أصفر/برتقالي للحالة الجديدة
 
-                    if (ord.status === "متوفر") {
-                        statusText = "✅ متوفر وجاهز للاستلام الآن";
-                        statusClass = "status-success";
-                    } else if (ord.status === "غير متوفر") {
-                        statusText = "❌ عذراً، غير متوفر حالياً";
-                        statusClass = "status-pending";
-                    } else if (ord.status === "تم طلبه") {
-                        statusText = "📦 تم طلبه وفي الطريق للصيدلية";
-                        statusClass = "status-pending";
-                    }
+                const row = document.createElement('div');
+                row.className = 'order-card';
+                row.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(o.date).toLocaleDateString('ar-EG')}</span>
+                        ${(!o.status || o.status === "قيد المراجعة والتحضير" || o.status === "معلق") ? `
+                            <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
+                        ` : ''}
+                    </div>
+                    <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${o.details}</div>
+                    ${o.image ? `<div style="margin:5px 0;"><a href="${o.image}" target="_blank" style="color:var(--primary); font-size:0.85em;">🖼️ عرض الروشتة المرفقة</a></div>` : ''}
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
+                        <span class="status-badge ${statusClass}">⏳ ${o.status || 'قيد المراجعة والتحضير'}</span>
+                    </div>
 
-                    div.innerHTML = `
-                        <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px;">طلب بتاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</div>
-                        <div style="color: var(--text-main); font-size: 0.95em;">${ord.details}</div>
-                        <span class="order-status ${statusClass}">${statusText}</span>
-                    `;
-                    container.appendChild(div);
+                    ${o.chat ? `
+                        <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
+                            <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${o.chat}</span>
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(row);
                 }
             });
 
@@ -458,6 +468,18 @@
             alert("خطأ أثناء إرسال الطلب: " + e.message);
         }
     }   
+    // دالة تمكن المستخدم من إلغاء وحذف طلبه مباشرة من حسابه
+    async function cancelMyOrder(id) {
+        if(confirm("هل أنت متأكد من رغبتك في إلغاء وحذف هذا الطلب؟")) {
+            try {
+                await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
+                alert("✅ تم إلغاء وحذف الطلب بنجاح.");
+                loadUserOrders(); // إعادة تحديث القائمة عند العميل فوراً
+            } catch(e) {
+                alert("خطأ أثناء إلغاء الطلب: " + e.message);
+            }
+        }
+    }
 </script>
 </body>
 </html>
