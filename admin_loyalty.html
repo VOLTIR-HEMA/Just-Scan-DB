@@ -235,16 +235,6 @@
     
     let isTyping = false;
     let allCustomers = {};
-    // متغيرات بره الدوال لحفظ الأعداد السابقة ومنع تكرار الصوت
-let lastOrdersCount = null;
-let lastPendingCount = null;
-
-// دالة تشغيل صوت التنبيه للأدمن
-function playAdminAlert() {
-    // حط هنا رابط ملف الـ mp3 المباشر اللي رفعته على جيتهاب
-    let audio = new Audio("https://github.com/VOLTIR-HEMA/Just-Scan-DB/blob/main/beep.mp3");
-    audio.play().catch(e => console.log("جوجل كروم يمنع تشغيل الصوت تلقائياً إلا بعد الضغط على أي مكان في الصفحة"));
-}
 
     // دالة إخفاء وإظهار الأقسام لتقليل الازدحام على الموبايل
     function toggleSection(id, btn) {
