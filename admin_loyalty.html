@@ -20,8 +20,14 @@
         .container { max-width: 1000px; margin: auto; }
         h1, h2 { color: var(--primary); text-align: center; }
         
+        /* أزرار التحكم العلوية للموبايل */
+        .admin-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; justify-content: center; }
+        .nav-btn { padding: 10px 15px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .nav-btn.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+
         .flex-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
-        .section-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; flex: 1; min-width: 300px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .section-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; flex: 1; min-width: 300px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: none; }
+        .section-card.visible { display: block; }
         
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-dim); }
@@ -32,7 +38,7 @@
         .btn:hover { background: var(--primary-hover); }
         .btn-danger { background: var(--danger); color: white; }
         
-        .user-row { background: var(--card); border: 1px solid var(--border); margin-bottom: 10px; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .user-row { background: var(--card); border: 1px solid var(--border); margin-bottom: 10px; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .user-info-brief b { font-size: 1.1em; color: var(--primary); display: block; }
         .user-info-brief span { font-size: 0.85em; color: var(--text-dim); }
         
@@ -40,19 +46,28 @@
         .actions-btn { display: flex; gap: 8px; }
         .mini-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
-        /* Modal Style */
-        #pointsModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; align-items: center; justify-content: center; }
-        .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
+        /* Modal Style الشامل لإدارة بيانات المستخدمين */
+        #pointsModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; align-items: center; justify-content: center; overflow-y: auto; padding: 10px; }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; border: 1px solid var(--border); box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
+        .modal-section { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>لوحة تحكم الصيدلية - نظام الولاء والعروض 👨‍⚕️</h1>
-    <p style="text-align: center; color: var(--text-dim); margin-bottom: 30px;">إدارة نقاط العملاء واستهداف العروض الذكية</p>
+    <p style="text-align: center; color: var(--text-dim); margin-bottom: 20px;">إدارة نقاط العملاء واستهداف العروض الذكية</p>
+
+    <div class="admin-nav">
+        <button class="nav-btn" onclick="toggleSection('register-card', this)">➕ حساب جديد</button>
+        <button class="nav-btn" onclick="toggleSection('offer-card', this)">🔥 إضافة عرض</button>
+        <button class="nav-btn" onclick="toggleSection('requests-card', this)">⏳ الحسابات المعلقة</button>
+        <button class="nav-btn" onclick="toggleSection('offers-list-card', this)">📢 العروض المنشورة</button>
+        <button class="nav-btn" onclick="toggleSection('orders-card', this)">📥 طلبات الأدوية</button>
+    </div>
 
     <div class="flex-grid">
-        <div class="section-card">
+        <div id="register-card" class="section-card">
             <h2>➕ تسجيل عميل جديد</h2>
             <div class="form-group">
                 <label>رقم موبايل العميل (ID)</label>
@@ -63,9 +78,9 @@
                 <input type="text" id="cust-name" class="form-control" placeholder="محمد أحمد">
             </div>
             <div class="form-group">
-    <label>كلمة المرور للعميل</label>
-    <input type="password" id="cust-password" class="form-control" placeholder="******">
-</div>
+                <label>كلمة المرور للعميل</label>
+                <input type="password" id="cust-password" class="form-control" placeholder="******">
+            </div>
             <div class="form-group">
                 <label>النوع (لتوجيه العروض الذكية)</label>
                 <select id="cust-gender" class="form-control">
@@ -76,7 +91,7 @@
             <button class="btn" onclick="registerCustomer()">🚀 إنشاء حساب العميل</button>
         </div>
 
-        <div class="section-card">
+        <div id="offer-card" class="section-card">
             <h2>🔥 إضافة عرض مخصّص</h2>
             <div class="form-group">
                 <label>عنوان العرض / المنتج</label>
@@ -98,16 +113,28 @@
         </div>
     </div>
     
-    <h2 style="margin-top: 40px; color: #fbbf24;">⏳ طلبات إنشاء الحسابات المعلقة (تحتاج موافقة)</h2>
-<div id="admin-requests-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 30px;">
-    <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>
-</div>
+    <div id="requests-card" class="section-card" style="margin-bottom: 25px;">
+        <h2 style="color: #fbbf24;">⏳ طلبات إنشاء الحسابات المعلقة (تحتاج موافقة)</h2>
+        <div id="admin-requests-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>
+        </div>
+    </div>
     
-    <h2>👥 قائمة العملاء الحاليين وإدارة النقاط</h2>
-    <h2 style="margin-top: 40px;">📢 إدارة العروض المنشورة حالياً</h2>
-<div id="admin-offers-list" style="display: flex; flex-direction: column; gap: 10px;">
-    <p style="text-align: center; color: var(--text-dim);">جاري تحميل العروض الحالية...</p>
-</div>
+    <div id="offers-list-card" class="section-card" style="margin-bottom: 25px;">
+        <h2>📢 إدارة العروض المنشورة حالياً</h2>
+        <div id="admin-offers-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <p style="text-align: center; color: var(--text-dim);">جاري تحميل العروض الحالية...</p>
+        </div>
+    </div>
+
+    <div id="orders-card" class="section-card" style="margin-bottom: 25px;">
+        <h2 style="color: #a855f7;">📥 طلبات الأدوية المستلمة من العملاء</h2>
+        <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات واردة حالياً.</p>
+        </div>
+    </div>
+
+    <h2>👥 قائمة العملاء الحاليين وإدارة البيانات</h2>
     <div class="form-group" style="max-width: 400px; margin: 0 auto 20px auto;">
         <input type="text" id="search-input" class="form-control" placeholder="🔍 ابحث برقم الموبايل..." oninput="filterCustomers()">
     </div>
@@ -115,17 +142,12 @@
     <div id="customers-list">
         <p style="text-align: center; color: var(--text-dim);">جاري تحميل قائمة العملاء...</p>
     </div>
-
-<h2 style="margin-top: 40px; color: #a855f7;">📥 طلبات الأدوية المستلمة من العملاء</h2>
-<div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-    <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات واردة حالياً.</p>
-</div>
 </div>
 
 <div id="pointsModal">
     <div class="modal-content">
-        <h3 id="modal-title" style="color: var(--primary); margin-top: 0;">تعديل نقاط العميل</h3>
-        <p id="modal-subtitle" style="color: var(--text-dim); font-size: 0.9em;"></p>
+        <h3 id="modal-title" style="color: var(--primary); margin-top: 0; text-align: center;">إدارة العميل الشاملة</h3>
+        <p id="modal-subtitle" style="text-align: center; color: var(--text-dim); font-size: 0.9em;"></p>
         <input type="hidden" id="modal-phone">
         
         <div class="form-group">
@@ -133,25 +155,54 @@
             <input type="number" id="points-amount" class="form-control" placeholder="مثال: 50 أو -20">
         </div>
 
-        <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
-    <label style="color: #fbbf24;">تعديل/تصفير كلمة المرور للعميل (اتركها فارغة إذا لم ترد تغييرها)</label>
-    <input type="text" id="modal-new-password" class="form-control" placeholder="اكتب الباسورد الجديد هنا">
-</div>
+        <div class="form-group">
+            <label style="color: #fbbf24;">تعديل/تغيير كلمة المرور للعميل</label>
+            <input type="text" id="modal-new-password" class="form-control" placeholder="اكتب الباسورد الجديد هنا">
+        </div>
+
+        <div class="modal-section">
+            <h4 style="color: var(--primary); margin: 0 0 10px 0;">💬 شات ورسائل العميل</h4>
+            <div class="form-group">
+                <label>الرسالة المستلمة أو الشات الحالي للعميل:</label>
+                <div id="modal-chat-view" style="background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-height: 40px; color: #fbbf24; white-space: pre-wrap;">لا توجد رسائل سابقة.</div>
+            </div>
+            <div class="form-group">
+                <label>ردك الخاص في الشات:</label>
+                <input type="text" id="modal-chat-reply" class="form-control" placeholder="اكتب رداً خاصاً في الشات للعميل...">
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <h4 style="color: #a855f7; margin: 0 0 10px 0;">🔔 العروض الفردية والإشعارات المخصصة</h4>
+            <div class="form-group">
+                <label>العرض الخاص أو الإشعار الحالي للعميل:</label>
+                <div id="modal-custom-offer-view" style="background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-height: 40px; color: #22c55e;">لا يوجد عرض خاص حالياً.</div>
+            </div>
+            <div class="form-group">
+                <label>إرسال عرض أو إشعار جديد (مثال: دواءك المطلب وصل الصيدلية):</label>
+                <input type="text" id="modal-custom-offer-input" class="form-control" placeholder="اكتب العرض الفردي أو الإشعار هنا...">
+            </div>
+        </div>
         
-        <div class="actions-btn">
-            <button class="btn" onclick="updatePointsProcess()">✅ حفظ وتحديث</button>
+        <div class="actions-btn" style="margin-top: 20px;">
+            <button class="btn" onclick="updatePointsProcess()">✅ حفظ وتحديث البيانات</button>
             <button class="btn btn-danger" onclick="closeModal()">إلغاء</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ⚠️ استبدل هذا الرابط برابط الـ Realtime Database الجديد تماماً الخاص بك
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
 
     let allCustomers = {};
 
-    // تحميل العملاء عند فتح الصفحة
+    // دالة إخفاء وإظهار الأقسام لتقليل الازدحام على الموبايل
+    function toggleSection(id, btn) {
+        const card = document.getElementById(id);
+        card.classList.toggle('visible');
+        btn.classList.toggle('active');
+    }
+
     async function loadCustomers() {
         try {
             const res = await fetch(`${DB_URL}/customers.json`);
@@ -186,7 +237,7 @@
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <div class="points-badge">${user.points || 0} نقطة</div>
                     <div class="actions-btn">
-                        <button class="mini-btn" style="background: var(--primary); color: var(--bg);" onclick="openPointsModal('${phone}', '${user.name}', ${user.points || 0})">✏️ إدارة النقاط</button>
+                        <button class="mini-btn" style="background: var(--primary); color: var(--bg);" onclick="openPointsModal('${phone}', '${user.name}', ${user.points || 0})">⚙️ إدارة العميل</button>
                     </div>
                 </div>
             `;
@@ -194,7 +245,6 @@
         });
     }
 
-    // فلترة البحث
     function filterCustomers() {
         const query = document.getElementById('search-input').value.trim();
         if(!query) { renderCustomers(allCustomers); return; }
@@ -206,326 +256,321 @@
         renderCustomers(filtered);
     }
 
-    // تسجيل عميل جديد
     async function registerCustomer() {
-    const phone = document.getElementById('cust-phone').value.trim();
-    const name = document.getElementById('cust-name').value.trim();
-    const password = document.getElementById('cust-password').value.trim();
-    const gender = document.getElementById('cust-gender').value;
+        const phone = document.getElementById('cust-phone').value.trim();
+        const name = document.getElementById('cust-name').value.trim();
+        const password = document.getElementById('cust-password').value.trim();
+        const gender = document.getElementById('cust-gender').value;
 
-    if(!phone || !name || !password) return Swal.fire('تنبيه', '❌ برجاء ملء حقول الهاتف، الاسم، وكلمة المرور.', 'warning');
+        if(!phone || !name || !password) return Swal.fire('تنبيه', '❌ برجاء ملء حقول الهاتف، الاسم، وكلمة المرور.', 'warning');
 
-    const payload = { name: name, password: password, gender: gender, points: 0, joinDate: Date.now() };
+        const payload = { name: name, password: password, gender: gender, points: 0, joinDate: Date.now() };
 
-    try {
-        const res = await fetch(`${DB_URL}/customers/${phone}.json`, {
-            method: 'PUT',
-            body: JSON.stringify(payload)
-        });
-        if(res.ok) {
-            Swal.fire('ممتاز', '🎉 تم تسجيل العميل الجديد بكلمة مرور بنجاح!', 'success');
-            document.getElementById('cust-phone').value = '';
-            document.getElementById('cust-name').value = '';
-            document.getElementById('cust-password').value = '';
-            loadCustomers();
-        }
-    } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
-}
-    // نشر عرض جديد
+        try {
+            const res = await fetch(`${DB_URL}/customers/${phone}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                Swal.fire('ممتاز', '🎉 تم تسجيل العميل الجديد بكلمة مرور بنجاح!', 'success');
+                document.getElementById('cust-phone').value = '';
+                document.getElementById('cust-name').value = '';
+                document.getElementById('cust-password').value = '';
+                loadCustomers();
+            }
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
+
     async function publishOffer() {
-      const title = document.getElementById('offer-title').value.trim();
-      const desc = document.getElementById('offer-desc').value.trim();
-      const target = document.getElementById('offer-target').value;
+        const title = document.getElementById('offer-title').value.trim();
+        const desc = document.getElementById('offer-desc').value.trim();
+        const target = document.getElementById('offer-target').value;
 
-      if(!title || !desc) return Swal.fire('تنبيه', '❌ برجاء ملء بيانات العرض.', 'warning');
+        if(!title || !desc) return Swal.fire('تنبيه', '❌ برجاء ملء بيانات العرض.', 'warning');
 
-      const payload = { title: title, desc: desc, target: target, date: Date.now() };
+        const payload = { title: title, desc: desc, target: target, date: Date.now() };
 
-      try {
-          const res = await fetch(`${DB_URL}/offers.json`, {
-              method: 'POST',
-              body: JSON.stringify(payload)
-          });
-          if(res.ok) {
-              Swal.fire('تم النشر', '📢 تم نشر العرض بنجاح وسيظهر للزبائن!', 'success');
-              document.getElementById('offer-title').value = '';
-              document.getElementById('offer-desc').value = '';
-              loadAdminOffers(); // تحديث فوري للقائمة تحت
-          }
-      } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
-  }
+        try {
+            const res = await fetch(`${DB_URL}/offers.json`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                Swal.fire('تم النشر', '📢 تم نشر العرض بنجاح وسيظهر للزبائن!', 'success');
+                document.getElementById('offer-title').value = '';
+                document.getElementById('offer-desc').value = '';
+                loadAdminOffers();
+            }
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
 
-    // إدارة النوافذ المنبثقة
+    // فتح النافذة الشاملة وجلب الرسائل والعروض الفردية من السيرفر فوراً لإدارتها
     function openPointsModal(phone, name, currentPoints) {
+        const user = allCustomers[phone] || {};
         document.getElementById('modal-phone').value = phone;
-        document.getElementById('modal-title').innerText = `إدارة نقاط العميل: ${name}`;
-        document.getElementById('modal-subtitle').innerText = `النقاط الحالية: ${currentPoints} نقطة`;
+        document.getElementById('modal-title').innerText = `إدارة حساب العميل: ${name}`;
+        document.getElementById('modal-subtitle').innerText = `الرقم: ${phone} | النقاط الحالية: ${currentPoints} نقطة`;
+        
         document.getElementById('points-amount').value = '';
+        document.getElementById('modal-new-password').value = user.password || '';
+        
+        // عرض الشات الفردي المخزن على حساب العميل مباشرة
+        document.getElementById('modal-chat-view').innerText = user.chat || "لا توجد رسائل في الشات بينك وبينه حالياً.";
+        document.getElementById('modal-chat-reply').value = user.chat || '';
+        
+        // عرض العرض الفردي المخزن حالياً للعميل
+        document.getElementById('modal-custom-offer-view').innerText = user.customOffer || "لا يوجد عرض فردي أو إشعار مخصص نشط حالياً.";
+        document.getElementById('modal-custom-offer-input').value = user.customOffer || '';
+
         document.getElementById('pointsModal').style.display = 'flex';
     }
 
     function closeModal() { document.getElementById('pointsModal').style.display = 'none'; }
 
+    // عملية الحفظ والتحديث الشاملة لكل البيانات في ضغطة زر واحدة بدون تكرار
     async function updatePointsProcess() {
-    const phone = document.getElementById('modal-phone').value;
-    const amount = parseInt(document.getElementById('points-amount').value) || 0; // جعلناها تقبل 0 لو الأدمن داخل يغير الباسورد بس
-    const newPass = document.getElementById('modal-new-password').value.trim();
-    
-    // شرط التحقق: لو الأدمن مغيرش الباسورد ومكتبش نقاط، نبهه
-    if(!amount && !newPass) return Swal.fire('تنبيه', 'برجاء إدخال قيمة نقاط أو كتابة كلمة مرور جديدة لتحديثها.', 'warning');
+        const phone = document.getElementById('modal-phone').value;
+        const amountInput = document.getElementById('points-amount').value.trim();
+        const newPass = document.getElementById('modal-new-password').value.trim();
+        const chatReply = document.getElementById('modal-chat-reply').value.trim();
+        const customOffer = document.getElementById('modal-custom-offer-input').value.trim();
+        
+        try {
+            // تحديث النقاط لو تم كتابتها
+            if(amountInput !== "") {
+                const amount = parseInt(amountInput) || 0;
+                const currentPoints = allCustomers[phone].points || 0;
+                allCustomers[phone].points = Math.max(0, currentPoints + amount);
+                await fetch(`${DB_URL}/customers/${phone}/points.json`, { method: 'PUT', body: JSON.stringify(allCustomers[phone].points) });
+            }
 
-    const currentPoints = allCustomers[phone].points || 0;
-    const newPoints = Math.max(0, currentPoints + amount); // لا تسمح بنقاط تحت الصفر
+            // تحديث الباسورد
+            if(newPass) {
+                allCustomers[phone].password = newPass;
+                await fetch(`${DB_URL}/customers/${phone}/password.json`, { method: 'PUT', body: JSON.stringify(newPass) });
+            }
 
-    try {
-        // 1. تحديث النقاط في السيرفر (كودك الأصلي كما هو)
-        const res = await fetch(`${DB_URL}/customers/${phone}/points.json`, {
-            method: 'PUT',
-            body: JSON.stringify(newPoints)
-        });
+            // تحديث شات العميل
+            allCustomers[phone].chat = chatReply;
+            await fetch(`${DB_URL}/customers/${phone}/chat.json`, { method: 'PUT', body: JSON.stringify(chatReply) });
 
-        // 2. التعديل الذكي: لو الأدمن كتب باسورد جديد، يروح يحفظه في السيرفر فوراً
-        if(newPass) {
-            await fetch(`${DB_URL}/customers/${phone}/password.json`, {
-                method: 'PUT',
-                body: JSON.stringify(newPass)
-            });
-        }
+            // تحديث العرض الفردي / الإشعارات المخصصة له
+            allCustomers[phone].customOffer = customOffer;
+            await fetch(`${DB_URL}/customers/${phone}/customOffer.json`, { method: 'PUT', body: JSON.stringify(customOffer) });
 
-        if(res.ok) {
-            Swal.fire('تم التحديث', '✅ تم حفظ البيانات وتحديث حساب العميل بنجاح!', 'success');
+            Swal.fire('تم التحديث الشامل', '✅ تم حفظ وتحديث كافة البيانات والشات والإشعارات بنجاح!', 'success');
             closeModal();
             loadCustomers();
-        }
-    } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
-}
-    // بدء التحميل
-    loadCustomers();
-    
-    // دالة لجلب العروض الحالية وعرضها للأدمن للحذف
-async function loadAdminOffers() {
-    const container = document.getElementById('admin-offers-list');
-    try {
-        const res = await fetch(`${DB_URL}/offers.json`);
-        const offers = await res.json();
-        container.innerHTML = '';
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
 
-        if(!offers) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد عروض نشطة حالياً.</p>';
-            return;
-        }
+    async function loadAdminOffers() {
+        const container = document.getElementById('admin-offers-list');
+        try {
+            const res = await fetch(`${DB_URL}/offers.json`);
+            const offers = await res.json();
+            container.innerHTML = '';
 
-        Object.keys(offers).forEach(id => {
-            const offer = offers[id];
-            const row = document.createElement('div');
-            row.className = 'user-row'; // نفس استايل الصفوف المظلمة بتاعك
-            row.innerHTML = `
-                <div class="user-info-brief">
-                    <b>🎯 ${offer.title}</b>
-                    <span>👥 مستهدف: ${offer.target} | الوصف: ${offer.desc}</span>
-                </div>
-                <button class="mini-btn" style="background: var(--danger); color: white;" onclick="deleteOffer('${id}')">🗑️ حذف العرض</button>
-            `;
-            container.appendChild(row);
-        });
-    } catch(e) { console.error(e); }
-}
+            if(!offers) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد عروض نشطة حالياً.</p>';
+                return;
+            }
 
-// دالة لحذف العرض نهائياً من قاعدة البيانات
-async function deleteOffer(id) {
-    if(!confirm("هل أنت متأكد من رغبتك في حذف هذا العرض نهائياً؟")) return;
-    try {
-        const res = await fetch(`${DB_URL}/offers/${id}.json`, { method: 'DELETE' });
-        if(res.ok) {
-            loadAdminOffers(); // إعادة تحديث القائمة
-        }
-    } catch(e) { console.error(e); }
-}
-
-// استدعي الدالة دي في نهاية الكود برضه عشان تشتغل أول ما تفتح الصفحة
-loadAdminOffers();
-    // 1. جلب طلبات الأدوية الواردة من الزبائن وتنبيهك تلقائياً لو وصل طلب جديد
-let lastOrdersCount = 0; // لمتابعة الإشعارات التلقائية
-
-async function loadAdminOrders() {
-    const container = document.getElementById('admin-orders-list');
-    try {
-        const res = await fetch(`${DB_URL}/orders.json`);
-        const orders = await res.json();
-        container.innerHTML = '';
-
-        if(!orders) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات معلقة حالياً.</p>';
-            lastOrdersCount = 0;
-            return;
-        }
-
-        const currentOrdersCount = Object.keys(orders).length;
-
-        // 🔔 كود الإشعارات التلقائية للأدمن: لو عدد الطلبات زاد، يظهر إشعار فوري صوتي وتنبيهي
-        if (currentOrdersCount > lastOrdersCount && lastOrdersCount !== 0) {
-            Swal.fire({
-                icon: 'info',
-                title: 'طلب جديد وارد!',
-                text: 'قام أحد العملاء بإرسال طلب صنف دواء جديد حالياً.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true
+            Object.keys(offers).forEach(id => {
+                const offer = offers[id];
+                const row = document.createElement('div');
+                row.className = 'user-row';
+                row.innerHTML = `
+                    <div class="user-info-brief">
+                        <b>🎯 ${offer.title}</b>
+                        <span>👥 مستهدف: ${offer.target} | الوصف: ${offer.desc}</span>
+                    </div>
+                    <button class="mini-btn" style="background: var(--danger); color: white;" onclick="deleteOffer('${id}')">🗑️ حذف العرض</button>
+                `;
+                container.appendChild(row);
             });
-            // تشغيل صوت تنبيهي بسيط إذا رغبت
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav');
-            audio.play().catch(e => console.log("Audio play blocked"));
-        }
-        lastOrdersCount = currentOrdersCount;
+        } catch(e) { console.error(e); }
+    }
 
-        Object.keys(orders).forEach(id => {
-            const o = orders[id];
-            const row = document.createElement('div');
-            row.className = 'user-row';
-            row.style.flexDirection = 'column';
-            row.style.alignItems = 'flex-start';
-            row.innerHTML = `
-                <div style="width:100%; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                    <b>👤 العميل: ${o.customerName} (${o.customerPhone})</b>
-                    <span style="color:var(--primary); font-weight:bold;">💊 الطلب: ${o.drugName}</span>
-                </div>
-                <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
+    async function deleteOffer(id) {
+        if(!confirm("هل أنت متأكد من رغبتك في حذف هذا العرض نهائياً؟")) return;
+        try {
+            const res = await fetch(`${DB_URL}/offers/${id}.json`, { method: 'DELETE' });
+            if(res.ok) { loadAdminOffers(); }
+        } catch(e) { console.error(e); }
+    }
 
-                <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
-                    <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
-                    <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
-                    <input type="text" id="chat-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" placeholder="اكتب رداً أو شات للزبون..." value="${o.chat || ''}">
-                    <button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💬 إرسال رد</button>
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    } catch(e) { console.error(e); }
-}
+    let lastOrdersCount = 0;
 
-// 2. تحديث حالة الطلب (متوفر / غير متوفر)
-async function updateOrderStatus(id, newStatus) {
-    try {
-        await fetch(`${DB_URL}/orders/${id}/status.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
-        Swal.fire('تم التحديث', `تم تحويل حالة الطلب إلى: ${newStatus}`, 'success');
-        loadAdminOrders();
-    } catch(e) { console.error(e); }
-}
+    async function loadAdminOrders() {
+        const container = document.getElementById('admin-orders-list');
+        try {
+            const res = await fetch(`${DB_URL}/orders.json`);
+            const orders = await res.json();
+            container.innerHTML = '';
 
-// 3. إرسال الشات والرد الداخلي للزبون
-async function sendOrderChat(id) {
-    const msg = document.getElementById(`chat-reply-${id}`).value.trim();
-    try {
-        await fetch(`${DB_URL}/orders/${id}/chat.json`, { method: 'PUT', body: JSON.stringify(msg) });
-        Swal.fire('تم الإرسال', 'وصل ردك للزبون وسيتلقى تنبيهاً فورياً داخل التطبيق!', 'success');
-        loadAdminOrders();
-    } catch(e) { console.error(e); }
-}
+            if(!orders) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات معلقة حالياً.</p>';
+                lastOrdersCount = 0;
+                return;
+            }
 
-// 4. تشغيل التحديث التلقائي كل 10 ثوانٍ لفحص الطلبات الجديدة والإشعارات
-loadAdminOrders();
-setInterval(loadAdminOrders, 10000);
+            const currentOrdersCount = Object.keys(orders).length;
+
+            if (currentOrdersCount > lastOrdersCount && lastOrdersCount !== 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'طلب جديد وارد!',
+                    text: 'قام أحد العملاء بإرسال طلب صنف دواء جديد حالياً.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000
+                });
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav');
+                audio.play().catch(e => console.log("Audio play blocked"));
+            }
+            lastOrdersCount = currentOrdersCount;
+
+            Object.keys(orders).forEach(id => {
+                const o = orders[id];
+                const row = document.createElement('div');
+                row.className = 'user-row';
+                row.style.flexDirection = 'column';
+                row.style.alignItems = 'flex-start';
+                row.innerHTML = `
+                    <div style="width:100%; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <b>👤 العميل: ${o.customerName} (${o.customerPhone})</b>
+                        <span style="color:var(--primary); font-weight:bold;">💊 الطلب: ${o.drugName}</span>
+                    </div>
+                    <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
+
+                    <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
+                        <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
+                        <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
+                        <input type="text" id="chat-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" placeholder="اكتب رداً أو شات للزبون..." value="${o.chat || ''}">
+                        <button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💬 إرسال رد</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function updateOrderStatus(id, newStatus) {
+        try {
+            await fetch(`${DB_URL}/orders/${id}/status.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
+            Swal.fire('تم التحديث', `تم تحويل حالة الطلب إلى: ${newStatus}`, 'success');
+            loadAdminOrders();
+        } catch(e) { console.error(e); }
+    }
+
+    async function sendOrderChat(id) {
+        const msg = document.getElementById(`chat-reply-${id}`).value.trim();
+        try {
+            await fetch(`${DB_URL}/orders/${id}/chat.json`, { method: 'PUT', body: JSON.stringify(msg) });
+            Swal.fire('تم الإرسال', 'وصل ردك للزبون وسيتلقى تنبيهاً فورياً داخل التطبيق!', 'success');
+            loadAdminOrders();
+        } catch(e) { console.error(e); }
+    }
+
     let lastRequestsCount = 0;
 
-// دالة لجلب طلبات إنشاء الحسابات المعلقة وعرضها للأدمن للموافقة أو الرفض
-async function loadPendingRequests() {
-    const container = document.getElementById('admin-requests-list');
-    try {
-        const res = await fetch(`${DB_URL}/pending_requests.json`);
-        const requests = await res.json();
-        container.innerHTML = '';
+    async function loadPendingRequests() {
+        const container = document.getElementById('admin-requests-list');
+        try {
+            const res = await fetch(`${DB_URL}/pending_requests.json`);
+            const requests = await res.json();
+            container.innerHTML = '';
 
-        if(!requests) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>';
-            lastRequestsCount = 0;
-            return;
-        }
+            if(!requests) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>';
+                lastRequestsCount = 0;
+                return;
+            }
 
-        const currentCount = Object.keys(requests).length;
-        // 🔔 إشعار صوتي ومرئي فوري للأدمن عند وصول طلب تسجيل حساب جديد
-        if(currentCount > lastRequestsCount && lastRequestsCount !== 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'طلب تسجيل حساب جديد!',
-                text: 'هناك زبون جديد قدم طلب إنشاء حساب حالياً، راجع قائمة الطلبات.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 5000
+            const currentCount = Object.keys(requests).length;
+            if(currentCount > lastRequestsCount && lastRequestsCount !== 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'طلب تسجيل حساب جديد!',
+                    text: 'هناك زبون جديد قدم طلب إنشاء حساب حالياً، راجع قائمة الطلبات.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000
+                });
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/911/911-600.wav');
+                audio.play().catch(e => console.log("Blocked sound"));
+            }
+            lastRequestsCount = currentCount;
+
+            Object.keys(requests).forEach(phone => {
+                const req = requests[phone];
+                if(req.status !== "معلق") return;
+
+                const row = document.createElement('div');
+                row.className = 'user-row';
+                row.innerHTML = `
+                    <div class="user-info-brief">
+                        <b>👤 الطلب: ${req.name} (${req.gender})</b>
+                        <span>📱 رقم الموبايل: ${phone} | الباسورد المطلوب: ${req.password}</span>
+                    </div>
+                    <div class="actions-btn">
+                        <button class="mini-btn" style="background: #22c55e; color: #000;" onclick="approveRequest('${phone}')">✅ قبول الحساب</button>
+                        <button class="mini-btn" style="background: #ef4444; color: #fff;" onclick="rejectRequest('${phone}')">❌ رفض</button>
+                    </div>
+                `;
+                container.appendChild(row);
             });
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/911/911-600.wav');
-            audio.play().catch(e => console.log("Blocked sound"));
-        }
-        lastRequestsCount = currentCount;
 
-        Object.keys(requests).forEach(phone => {
-            const req = requests[phone];
-            // تخطي الحسابات المقبولة أو المرفوضة من العرض
-            if(req.status !== "معلق") return;
+            if(container.innerHTML === '') {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>';
+            }
+        } catch(e) { console.error(e); }
+    }
 
-            const row = document.createElement('div');
-            row.className = 'user-row';
-            row.innerHTML = `
-                <div class="user-info-brief">
-                    <b>👤 الطلب: ${req.name} (${req.gender})</b>
-                    <span>📱 رقم الموبايل: ${phone} | الباسورد المطلوب: ${req.password}</span>
-                </div>
-                <div class="actions-btn">
-                    <button class="mini-btn" style="background: #22c55e; color: #000;" onclick="approveRequest('${phone}')">✅ قبول الحساب</button>
-                    <button class="mini-btn" style="background: #ef4444; color: #fff;" onclick="rejectRequest('${phone}')">❌ رفض</button>
-                </div>
-            `;
-            container.appendChild(row);
-        });
+    async function approveRequest(phone) {
+        try {
+            const resReq = await fetch(`${DB_URL}/pending_requests/${phone}.json`);
+            const reqData = await resReq.json();
 
-        if(container.innerHTML === '') {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>';
-        }
-    } catch(e) { console.error(e); }
-}
+            if(!reqData) return;
 
-// الموافقة على طلب العميل ونقل بياناته لقاعدة بيانات العملاء الرسمية تلقائياً
-async function approveRequest(phone) {
-    try {
-        // 1. جلب بيانات الطلب المعلق
-        const resReq = await fetch(`${DB_URL}/pending_requests/${phone}.json`);
-        const reqData = await resReq.json();
+            const customerPayload = {
+                name: reqData.name,
+                password: reqData.password,
+                gender: reqData.gender,
+                points: 0,
+                joinDate: Date.now()
+            };
 
-        if(!reqData) return;
+            await fetch(`${DB_URL}/customers/${phone}.json`, { method: 'PUT', body: JSON.stringify(customerPayload) });
+            await fetch(`${DB_URL}/pending_requests/${phone}/status.json`, { method: 'PUT', body: JSON.stringify("مقبول") });
 
-        // 2. تجهيز بيانات العميل الرسمية بنقاط صفر وتاريخ الانضمام
-        const customerPayload = {
-            name: reqData.name,
-            password: reqData.password,
-            gender: reqData.gender,
-            points: 0,
-            joinDate: Date.now()
-        };
+            Swal.fire('تم القبول', '🎉 تم تفعيل حساب العميل ونقله للسيستم بنجاح ويستطيع تسجيل الدخول الآن!', 'success');
+            loadPendingRequests();
+            loadCustomers();
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
 
-        // 3. النقل للعملاء وتحديث حالة الطلب إلى "مقبول" ليعلم المستخدم في تطبيقه
-        await fetch(`${DB_URL}/customers/${phone}.json`, { method: 'PUT', body: JSON.stringify(customerPayload) });
-        await fetch(`${DB_URL}/pending_requests/${phone}/status.json`, { method: 'PUT', body: JSON.stringify("مقبول") });
+    async function rejectRequest(phone) {
+        try {
+            await fetch(`${DB_URL}/pending_requests/${phone}/status.json`, { method: 'PUT', body: JSON.stringify("مرفوض") });
+            Swal.fire('تم الرفض', 'تم رفض طلب إنشاء الحساب بنجاح.', 'success');
+            loadPendingRequests();
+        } catch(e) { console.error(e); }
+    }
 
-        Swal.fire('تم القبول', '🎉 تم تفعيل حساب العميل ونقله للسيستم بنجاح ويستطيع تسجيل الدخول الآن!', 'success');
-        loadPendingRequests();
-        loadCustomers();
-    } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
-}
+    // استدعاء الدوال عند بدء التحميل
+    loadCustomers();
+    loadAdminOffers();
+    loadAdminOrders();
+    loadPendingRequests();
 
-// رفض طلب العميل وتحويل حالته إلى "مرفوض"
-async function rejectRequest(phone) {
-    try {
-        await fetch(`${DB_URL}/pending_requests/${phone}/status.json`, { method: 'PUT', body: JSON.stringify("مرفوض") });
-        Swal.fire('تم الرفض', 'تم رفض طلب إنشاء الحساب بنجاح.', 'success');
-        loadPendingRequests();
-    } catch(e) { console.error(e); }
-}
-
-// تشغيل الجلب التلقائي لطلبات الحسابات كل 10 ثوانٍ
-loadPendingRequests();
-setInterval(loadPendingRequests, 10000);
+    // فحص دوري تلقائي
+    setInterval(loadAdminOrders, 10000);
+    setInterval(loadPendingRequests, 10000);
 </script>
 </body>
 </html>
