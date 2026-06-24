@@ -207,15 +207,17 @@
 
         <div id="products-admin-card" class="section-card">
             <h2>🛍️ إدارة منتجات المتجر</h2>
-            <div class="modal-section">
-                <h3 style="color: var(--primary); font-size: 1.1em;">إضافة منتج جديد</h3>
+            <div id="product-form-container" class="modal-section">
+                <h3 id="product-form-title" style="color: var(--primary); font-size: 1.1em;">إضافة منتج جديد</h3>
+                <input type="hidden" id="editing-product-id">
+
                 <div class="form-group">
                     <label>اسم المنتج</label>
                     <input type="text" id="product-name" class="form-control" placeholder="مثال: كريم نيفيا للترطيب">
                 </div>
                 <div class="form-group">
                     <label>سعر المنتج (بالجنيه)</label>
-                    <input type="number" id="product-price" class="form-control" placeholder="مثال: 75">
+                    <input type="number" id="product-price" class="form-control" placeholder="اختياري، مثال: 75">
                 </div>
                 <div class="form-group">
                     <label>وصف قصير للمنتج</label>
@@ -223,11 +225,16 @@
                 </div>
                 <div class="form-group">
                     <label>صورة المنتج</label>
-                    <input type="file" id="product-image" class="form-control" accept="image/*">
+                    <input type="file" id="product-image" class="form-control" accept="image/*" onchange="document.getElementById('current-product-img-display').style.display = 'none';">
+                    <div id="current-product-img-display" style="margin-top: 10px;"></div>
                 </div>
-                <button class="btn" onclick="addProduct()">➕ إضافة المنتج للمتجر</button>
+                <button id="product-submit-btn" class="btn" onclick="submitProduct()">➕ إضافة المنتج للمتجر</button>
             </div>
-            <div id="admin-products-list" class="modal-section"></div>
+            <div class="modal-section">
+                <h3 style="color: var(--primary); font-size: 1.1em;">المنتجات الحالية في المتجر</h3>
+                <input type="text" id="product-search-input" class="form-control" placeholder="🔍 ابحث عن منتج بالاسم..." oninput="filterAdminProducts()" style="margin-bottom: 15px;">
+                <div id="admin-products-list"></div>
+            </div>
         </div>
     </div> ```
 
@@ -363,6 +370,7 @@
 <script>
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
     
+    let allAdminProducts = {};
     let isTyping = false;
     let allCustomers = {};
 
@@ -627,6 +635,7 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
     }
 
     let lastOrdersCount = 0;
+    let lastCartOrdersCount = 0;
 
     async function loadAdminOrders() {
         const container = document.getElementById('admin-orders-list');
@@ -877,6 +886,7 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
             await loadAdminOrders();
             await loadCartOrders();
             await loadPendingRequests();
+            // لا داعي لتحديث قائمة المحادثات كل ثانيتين إلا إذا كانت مفتوحة
             await loadAdminChats();
         }, 2000);
     }
