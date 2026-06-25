@@ -116,6 +116,29 @@
         .product-admin-card { display: flex; align-items: center; gap: 15px; }
         .product-admin-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
     </style>
+    <style>
+        /* Accordion Styles for Orders */
+        .order-accordion-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .order-accordion-item.new-order {
+            background: rgba(168, 85, 247, 0.15); /* بنفسجي فاتح */
+            border-color: #a855f7;
+        }
+        .order-accordion-header {
+            background: transparent; width: 100%; border: none; padding: 15px; text-align: right; color: var(--text); font-size: 1em; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .order-accordion-header .arrow { transition: transform 0.3s; color: var(--primary); }
+        .order-accordion-item.active .order-accordion-header .arrow { transform: rotate(180deg); }
+        .order-accordion-content {
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; padding: 0 15px;
+        }
+        .order-accordion-content-inner { border-top: 1px solid var(--border); padding: 15px 0; }
+    </style>
 </head>
 <body>
 
@@ -155,7 +178,7 @@
                 <label>النوع (لتوجيه العروض الذكية)</label>
                 <select id="cust-gender" class="form-control">
                     <option value="ذكر">ذكر</option>
-                    <option value="انثى">انثى</option>
+                    <option value="أنثى">أنثى</option>
                 </select>
             </div>
             <button class="btn" onclick="registerCustomer()">🚀 إنشاء حساب العميل</button>
@@ -175,8 +198,8 @@
                 <label>الفئة المستهدفة</label>
                 <select id="offer-target" class="form-control">
                     <option value="الكل">الكل (يظهر للجميع)</option>
-                    <option value="ذكر">ذكور فقط</option>
-                    <option value="انثى">نساء فقط</option>
+                    <option value="ذكر">ذكر فقط</option>
+                    <option value="أنثى">أنثى فقط</option>
                 </select>
             </div>
             <button class="btn" style="background: #a855f7;" onclick="publishOffer()">📢 نشر العرض للعملاء</button>
@@ -299,7 +322,7 @@
             <label>النوع (لتوجيه العروض الذكية)</label>
             <select id="modal-customer-gender" class="form-control">
                 <option value="ذكر">ذكر</option>
-                <option value="انثى">انثى</option>
+                <option value="أنثى">أنثى</option>
             </select>
         </div>
 
@@ -673,19 +696,19 @@
                 return;
             }
 
-            const currentOrdersCount = Object.keys(orders).length;
-            counter.innerText = currentOrdersCount;
-            counter.style.display = currentOrdersCount > 0 ? 'flex' : 'none';
+            // --- تعديل منطق العداد ---
+            // حساب الطلبات التي حالتها "معلق" فقط
+            const pendingOrders = Object.values(orders).filter(o => !o.status || o.status === 'معلق');
+            const pendingCount = pendingOrders.length;
+            counter.innerText = pendingCount;
+            counter.style.display = pendingCount > 0 ? 'flex' : 'none';
 
-            if (currentOrdersCount > lastOrdersCount && lastOrdersCount !== 0) {
+            if (pendingCount > lastOrdersCount && lastOrdersCount !== 0) {
                 Swal.fire({
                     icon: 'info',
                     title: 'طلب جديد وارد!',
                     text: 'قام أحد العملاء بإرسال طلب صنف دواء جديد حالياً.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 4000
                 });
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav');
                 audio.play().catch(e => console.log("Audio play blocked"));
@@ -695,48 +718,69 @@
             Object.keys(orders).forEach(id => {
                 const o = orders[id];
                 const row = document.createElement('div');
-                row.className = 'user-row';
-                row.style.flexDirection = 'column';
-                row.style.alignItems = 'flex-start';
+                row.className = 'order-accordion-item';
+                
                 if (!o.status || o.status === 'معلق') {
                     row.classList.add('new-order');
                 }
+
                 row.innerHTML = `
-                    <div style="width:100%; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                        <b>👤 العميل: ${allCustomers[o.phone]?.name || "زبون"} (<span style="color:var(--primary);">${o.phone}</span>)</b>
-<span style="color:var(--text-dim); font-size:0.85em;">📅 التاريخ: ${new Date(o.date).toLocaleString('ar-EG')}</span>
-</div>
-<div style="margin:10px 0; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; width:100%; box-sizing:border-box;">
-    <p style="margin:0; font-weight:bold; color:#fff;">💊 محتوى الطلب: ${o.details}</p>
-   ${o.image ? `<div style="margin-top:10px;"><span onclick="openImageViewer('${o.image}')" style="color:var(--primary); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">🖼️ اضغط لمعاينة الروشتة هنا</span></div>` : ''}
-                    </div>
-                    <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
+                    <button class="order-accordion-header">
+                        <div style="text-align: right;">
+                            <b>👤 طلب من: ${allCustomers[o.phone]?.name || "زبون"}</b>
+                            <span style="color:var(--text-dim); font-size:0.85em; display: block; margin-top: 4px;">📅 التاريخ: ${new Date(o.date).toLocaleString('ar-EG')}</span>
+                        </div>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="order-accordion-content">
+                        <div class="order-accordion-content-inner">
+                            <div style="margin:10px 0; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; width:100%; box-sizing:border-box;">
+                                <p style="margin:0; font-weight:bold; color:#fff;">💊 محتوى الطلب: ${o.details}</p>
+                                ${o.image ? `<div style="margin-top:10px;"><span onclick="openImageViewer('${o.image}')" style="color:var(--primary); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">🖼️ اضغط لمعاينة الروشتة هنا</span></div>` : ''}
+                            </div>
+                            <p style="color:var(--text-dim); margin:8px 0 4px 0;">الحالة الحالية: <b style="color:#fbbf24">${o.status}</b></p>
 
-                    <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
-                        <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
-                        <button class="mini-btn" style="background:#f97316; color:#fff;" onclick="updateOrderStatus('${id}', 'تم طلبه')">📦 تم طلبه</button>
-                        <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
-                    </div>
-                    <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
-                        <select id="quick-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" onchange="document.getElementById('chat-reply-${id}').value = this.value">
-                            <option value="">-- اختر رد سريع --</option>
-                            <option value="طلبك جاهز للاستلام من الصيدلية.">طلبك جاهز للاستلام.</option>
-                            <option value="الدواء المطلوب غير متوفر حالياً.">الدواء غير متوفر.</option>
-                            <option value="تم طلب الصنف وسيصل خلال 24 ساعة.">تم طلب الصنف (24 ساعة).</option>
-                        </select>
-                        <input type="text" id="chat-reply-${id}" class="form-control" style="flex:2; min-width:200px; padding:6px;" 
-                            placeholder="أو اكتب رداً مخصصاً للزبون..." value="${o.chat || ''}"
-                            onfocus="isTyping = true" onblur="isTyping = false">
+                            <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
+                                <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateOrderStatus('${id}', 'متوفر بالصيدلية')">✅ متوفر</button>
+                                <button class="mini-btn" style="background:#f97316; color:#fff;" onclick="updateOrderStatus('${id}', 'تم طلبه')">📦 تم طلبه</button>
+                                <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="updateOrderStatus('${id}', 'غير متوفر')">❌ غير متوفر</button>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-top:10px; width:100%; flex-wrap:wrap;">
+                                <select id="quick-reply-${id}" class="form-control" style="flex:1; min-width:150px; padding:6px;" onchange="document.getElementById('chat-reply-${id}').value = this.value">
+                                    <option value="">-- اختر رد سريع --</option>
+                                    <option value="طلبك جاهز للاستلام من الصيدلية.">طلبك جاهز للاستلام.</option>
+                                    <option value="الدواء المطلوب غير متوفر حالياً.">الدواء غير متوفر.</option>
+                                    <option value="تم طلب الصنف وسيصل خلال 24 ساعة.">تم طلب الصنف (24 ساعة).</option>
+                                </select>
+                                <input type="text" id="chat-reply-${id}" class="form-control" style="flex:2; min-width:200px; padding:6px;" 
+                                    placeholder="أو اكتب رداً مخصصاً للزبون..." value="${o.chat || ''}"
+                                    onfocus="isTyping = true" onblur="isTyping = false">
 
-<button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💾 حفظ الرد داخلياً</button>
+                                <button class="mini-btn" style="background:#a855f7; color:#fff;" onclick="sendOrderChat('${id}')">💾 حفظ الرد داخلياً</button>
 
-<button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="deleteOrder('${id}')">🗑️ حذف الطلب</button>
-<button class="mini-btn" style="background:#f97316; color:#fff;" onclick="toggleAutoDelete('${id}')" id="autodel-btn-${id}">
-    ${o.autoDelete ? '⏳ حذف تلقائي (مفعّل)' : '🕒 حذف تلقائي (أسبوع)'}
-</button>
+                                <button class="mini-btn" style="background:#ef4444; color:#fff;" onclick="deleteOrder('${id}')">🗑️ حذف الطلب</button>
+                                <button class="mini-btn" style="background:#f97316; color:#fff;" onclick="toggleAutoDelete('${id}')" id="autodel-btn-${id}">
+                                    ${o.autoDelete ? '⏳ حذف تلقائي (مفعّل)' : '🕒 حذف تلقائي (أسبوع)'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(row);
+            });
+
+            // Add click event listeners for the new accordion headers
+            document.querySelectorAll('.order-accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const item = header.parentElement;
+                    item.classList.toggle('active');
+                    const content = header.nextElementSibling;
+                    if (item.classList.contains('active')) {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    } else {
+                        content.style.maxHeight = "0px";
+                    }
+                });
             });
         } catch(e) { console.error(e); }
     }
