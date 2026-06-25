@@ -940,11 +940,11 @@
             if (typeof isTyping !== 'undefined' && isTyping) {
                 return; // إذا كان الأدمن يكتب، لا تقم بالتحديث لتجنب فقدان النص
             }
-            await loadAdminOrders();
-            await loadCartOrders();
-            await loadPendingRequests();
-            // لا داعي لتحديث قائمة المحادثات كل ثانيتين إلا إذا كانت مفتوحة
-            await loadAdminChats();
+            loadAdminOrders();
+            loadCartOrders();
+            loadPendingRequests();
+            // تحديث المحادثات فقط إذا كان القسم الخاص بها مرئياً
+            if (document.getElementById('chats-list-card').classList.contains('visible')) { loadAdminChats(); }
         }, 2000);
     }
 
@@ -1355,7 +1355,62 @@
                 counter.style.display = 'none';
                 return;
             }
-            // ... (Logic to render cart orders will be added here)
+
+            const pendingOrders = Object.values(orders).filter(o => !o.status || o.status === 'معلق');
+            const pendingCount = pendingOrders.length;
+            counter.innerText = pendingCount;
+            counter.style.display = pendingCount > 0 ? 'flex' : 'none';
+
+            Object.keys(orders).forEach(id => {
+                const o = orders[id];
+                const customerName = allCustomers[o.phone]?.name || "زبون";
+                const item = document.createElement('div');
+                item.className = 'order-accordion-item';
+                if (!o.status || o.status === 'معلق') {
+                    item.classList.add('new-order');
+                }
+
+                let itemsHtml = o.items.map(p => `
+                    <div style="display: flex; gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border);">
+                        <img src="${p.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                        <div style="flex: 1;">${p.name}</div>
+                        <div style="font-weight: bold; color: var(--success);">${p.price} ج.م</div>
+                    </div>
+                `).join('');
+
+                item.innerHTML = `
+                    <button class="order-accordion-header">
+                        <div style="text-align: right;">
+                            <b>🛒 طلب من: ${customerName}</b>
+                            <span style="color:var(--text-dim); font-size:0.85em; display: block; margin-top: 4px;">
+                                📅 ${new Date(o.date).toLocaleString('ar-EG')} | الإجمالي: <b style="color: var(--success);">${o.totalPrice} ج.م</b>
+                            </span>
+                        </div>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="order-accordion-content">
+                        <div class="order-accordion-content-inner">
+                            <h4 style="margin: 0 0 10px 0; color: var(--primary);">المنتجات المطلوبة:</h4>
+                            ${itemsHtml}
+                            <div style="display:flex; gap:10px; margin-top:15px;">
+                                <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateCartOrderStatus('${id}', 'تم التجهيز')">✅ تم التجهيز</button>
+                                <button class="mini-btn btn-danger" onclick="deleteCartOrder('${id}')">🗑️ حذف الطلب</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            // إعادة ربط الأحداث مع الأكورديون الجديد
+            container.querySelectorAll('.order-accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const item = header.parentElement;
+                    item.classList.toggle('active');
+                    const content = header.nextElementSibling;
+                    content.style.maxHeight = item.classList.contains('active') ? content.scrollHeight + "px" : "0px";
+                });
+            });
         } catch (e) { console.error("Error loading cart orders:", e); }
     }
 
@@ -1402,6 +1457,33 @@
             } catch (e) {
                 Swal.fire('خطأ', 'فشل حذف المحادثة: ' + e.message, 'error');
             }
+        }
+    }
+
+    async function updateCartOrderStatus(id, newStatus) {
+        try {
+            await fetch(`${DB_URL}/cart_orders/${id}/status.json`, { method: 'PUT', body: JSON.stringify(newStatus) });
+            Swal.fire('تم التحديث', `تم تحويل حالة طلب المتجر إلى: ${newStatus}`, 'success');
+            loadCartOrders();
+        } catch(e) { console.error(e); }
+    }
+
+    async function deleteCartOrder(id) {
+        const confirm = await Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم حذف طلب المتجر هذا نهائياً!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'نعم، احذفه'
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await fetch(`${DB_URL}/cart_orders/${id}.json`, { method: 'DELETE' });
+                Swal.fire('تم الحذف', 'تم حذف طلب المتجر بنجاح.', 'success');
+                loadCartOrders();
+            } catch(e) { console.error(e); }
         }
     }
 
