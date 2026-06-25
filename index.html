@@ -264,7 +264,7 @@
             
             <select id="reg-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
                 <option value="ذكر">الجنس: ذكر</option>
-                <option value="انثى">الجنس: انثى</option>
+                <option value="أنثى">الجنس: أنثى</option>
             </select>
             
             <button class="btn-action" onclick="submitRegisterRequest()">🚀 تقديم الطلب الآن</button>
@@ -284,7 +284,7 @@
             <input type="password" id="settings-pass" class="input-phone" placeholder="🔑 كلمة مرور جديدة (اختياري)" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
             <select id="settings-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
                 <option value="ذكر">الجنس: ذكر</option>
-                <option value="انثى">الجنس: انثى</option>
+                <option value="أنثى">الجنس: أنثى</option>
             </select>
             <button class="btn-action" style="background-color: var(--success);" onclick="updateUserSettings()">💾 حفظ التعديلات</button>
 
@@ -357,7 +357,6 @@
 <script>
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
     let currentLoggedPhone = null;
-    let compressedImageBase64 = ""; 
     let currentUserData = null;
     let chatUpdateInterval = null;
     let shoppingCart = [];
@@ -530,32 +529,45 @@ window.addEventListener('DOMContentLoaded', () => {
         if (eventSource) {
             eventSource.close(); // إغلاق أي اتصال قديم
         }
-        // إنشاء اتصال دائم مع قاعدة البيانات
+        // 1. إنشاء اتصال لمراقبة بيانات العميل (النقاط، الاسم، إلخ)
         eventSource = new EventSource(`${DB_URL}/customers/${phone}.json`);
 
         eventSource.addEventListener('put', (e) => {
-            console.log("تحديث شامل للبيانات...");
+            console.log("تحديث شامل لبيانات العميل...");
             const data = JSON.parse(e.data);
             if (data.path === "/") { // تحديث كامل لبيانات العميل
                 updateUI(data.data);
-                checkUnreadMessages();
-                loadMyOrders();
             }
         });
 
         eventSource.addEventListener('patch', (e) => {
-            console.log("تحديث جزئي للبيانات...");
+            console.log("تحديث جزئي لبيانات العميل...");
             const data = JSON.parse(e.data);
             // دمج التحديثات الجزئية مع البيانات الحالية
             Object.assign(currentUserData, data.data);
             updateUI(currentUserData);
-            checkUnreadMessages();
-            loadMyOrders();
         });
 
         eventSource.onerror = (e) => {
             console.error("خطأ في الاتصال اللحظي، سيتم إعادة المحاولة.", e);
         };
+
+        // 2. إنشاء اتصال منفصل لمراقبة الطلبات والمحادثات لضمان التحديث الفوري
+        const updatesEventSource = new EventSource(`${DB_URL}.json?orderBy="$key"&startAt="chats"&endAt="medicine_orders"`);
+        updatesEventSource.addEventListener('patch', (e) => {
+            const data = JSON.parse(e.data);
+            // إذا كان التحديث متعلقاً بطلبات الأدوية أو المحادثات، قم بتحديث الأجزاء ذات الصلة
+            if (data.path.startsWith('/medicine_orders')) {
+                loadMyOrders();
+            }
+            if (data.path.startsWith(`/chats/${phone}`)) {
+                checkUnreadMessages();
+                // إذا كانت نافذة المحادثة مفتوحة، قم بتحديثها
+                if (document.getElementById('chatModal').style.display === 'flex') {
+                    loadChatMessages();
+                }
+            }
+        });
     }
 
     function updateUI(userData) {
@@ -572,10 +584,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function forceRefreshData() {
         Swal.fire({ icon: 'info', title: 'جاري التحديث...', text: 'يتم تحديث جميع بياناتك الآن.', timer: 1500, showConfirmButton: false });
-        updateUI(currentUserData); // تحديث فوري من البيانات الحالية
         loadMyOrders();
         checkUnreadMessages();
-        loadChatMessages(); // تحديث المحادثات أيضاً
         loadAndFilterOffers(currentUserData.gender);
     }
 
@@ -588,7 +598,6 @@ window.addEventListener('DOMContentLoaded', () => {
             timer: 1500,
             showConfirmButton: false
         });
-        if (chatUpdateInterval) clearInterval(chatUpdateInterval);
         if (eventSource) eventSource.close(); // إغلاق الاتصال اللحظي عند الخروج
         location.reload();
     }
@@ -630,6 +639,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     async function submitMedicineOrder() {
+        let compressedImageBase64 = document.getElementById('order-file').__compressedImage || "";
         const textVal = document.getElementById('order-text').value.trim();
         const fileInput = document.getElementById('order-file');
 
@@ -665,55 +675,81 @@ window.addEventListener('DOMContentLoaded', () => {
     async function loadMyOrders() {
         const container = document.getElementById('my-orders-container');
         try {
-            // تعديل السطر ده لكسر الكاش وإجبار الفايربيز يبعت الردود الجديدة حالا
-            const res = await fetch(`${DB_URL}/medicine_orders.json?t=${Date.now()}`);
+            const res = await fetch(`${DB_URL}/medicine_orders.json`);
             const orders = await res.json();
-            container.innerHTML = '';
 
-            if (!orders) {
+            const myOrders = {};
+            if (orders) {
+                for (const id in orders) {
+                    if (orders[id].phone === currentLoggedPhone) {
+                        myOrders[id] = orders[id];
+                    }
+                }
+            }
+
+            if (Object.keys(myOrders).length === 0) {
                 container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا توجد طلبات مرسلة حالياً.</p>';
                 return;
             }
 
-            let hasOrders = false;
-            Object.keys(orders).forEach(id => {
-                const ord = orders[id];
-                if (ord.phone === currentLoggedPhone) {
-                    hasOrders = true;
+            // --- منطق التحديث الذكي لمنع الوميض ---
+            const existingIds = new Set([...container.querySelectorAll('.order-item')].map(el => el.dataset.id));
+            const newIds = new Set(Object.keys(myOrders));
 
+            // 1. تحديث أو إضافة الطلبات
+            newIds.forEach(id => {
+                const ord = myOrders[id];
+                const existingElement = container.querySelector(`[data-id="${id}"]`);
+                
+                // تحديد لون وشعار الحالة
                     let statusClass = "status-pending";
                     if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية") statusClass = "status-success";
                     if(ord.status === "غير متوفر") statusClass = "status-danger";
-                    if(ord.status === "تم طلبه") statusClass = "status-warning"; 
- 
+                    if(ord.status === "تم طلبه") statusClass = "status-warning";
+
+                const orderHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                        <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
+                        <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
+                    </div>
+                    <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
+                    
+                    ${ord.image ? `<div style="margin:5px 0;"><span onclick="openImageViewer('${ord.image}')" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline; cursor:pointer;">🖼️ عرض الروشتة المرفقة</span></div>` : ''}
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
+                        <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد المراجعة والتحضير'}</span>
+                    </div>
+
+                    ${ord.chat ? `
+                        <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
+                            <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${ord.chat}</span>
+                        </div>
+                    ` : ''}
+                `;
+
+                if (existingElement) {
+                    // إذا كان الطلب موجوداً، قم بتحديث محتواه فقط
+                    existingElement.innerHTML = orderHTML;
+                } else {
+                    // إذا كان الطلب جديداً، قم بإنشائه وإضافته
                     const row = document.createElement('div');
                     row.className = 'order-item';
-                    row.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
-                            <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
-                        </div>
-                        <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
-                        
-                        ${ord.image ? `<div style="margin:5px 0;"><span onclick="openImageViewer('${ord.image}')" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline; cursor:pointer;">🖼️ عرض الروشتة المرفقة</span></div>` : ''}
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
-                            <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد المراجعة والتحضير'}</span>
-                        </div>
-
-                        ${ord.chat ? `
-                            <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
-                                <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${ord.chat}</span>
-                            </div>
-                        ` : ''}
-                    `;
-                    container.appendChild(row);
+                    row.dataset.id = id;
+                    row.innerHTML = orderHTML;
+                    // إزالة رسالة "لا توجد طلبات" إذا كانت موجودة
+                    const placeholder = container.querySelector('p');
+                    if (placeholder) placeholder.remove();
+                    container.prepend(row);
                 }
             });
 
-            if (!hasOrders) {
-                container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا توجد طلبات مرسلة حالياً.</p>';
-            }
+            // 2. حذف الطلبات التي لم تعد موجودة في البيانات الجديدة
+            existingIds.forEach(id => {
+                if (!newIds.has(id)) {
+                    container.querySelector(`[data-id="${id}"]`)?.remove();
+                }
+            });
+
         } catch (e) {
             console.error("خطأ أثناء جلب الطلبات: ", e);
         }
@@ -765,6 +801,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('order-file');
         const display = document.getElementById('file-name-display');
         const removeBtn = document.getElementById('btn-remove-file');
+        input.__compressedImage = ""; // Reset custom property
         
         if (input.files && input.files[0]) {
             const file = input.files[0];
@@ -792,7 +829,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    input.__compressedImage = canvas.toDataURL('image/jpeg', 0.7);
                     
                     display.innerText = "✔️ تم تجهيز الروشتة بنجاح";
                     removeBtn.style.display = "inline-block";
@@ -805,7 +842,7 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('order-file').value = "";
         document.getElementById('file-name-display').innerText = "لم يتم اختيار صورة";
         document.getElementById('btn-remove-file').style.display = "none";
-        compressedImageBase64 = ""; 
+        document.getElementById('order-file').__compressedImage = ""; 
     }
 
     function openPointsDetailModal() {
