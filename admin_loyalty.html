@@ -228,7 +228,7 @@
                     <input type="file" id="product-image" class="form-control" accept="image/*" onchange="document.getElementById('current-product-img-display').style.display = 'none';">
                     <div id="current-product-img-display" style="margin-top: 10px;"></div>
                 </div>
-                <button id="product-submit-btn" class="btn" onclick="submitProduct()">➕ إضافة المنتج للمتجر</button>
+                <button id="product-submit-btn" class="btn" onclick="addProduct()">➕ إضافة المنتج للمتجر</button>
             </div>
             <div class="modal-section">
                 <h3 style="color: var(--primary); font-size: 1.1em;">المنتجات الحالية في المتجر</h3>
@@ -881,7 +881,7 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
         // فحص دوري ذكي ومتقارب جداً (كل ثانيتين) لتحديث الشاشة والإشعارات بدون تهنيج
        setInterval(async () => {
             if (typeof isTyping !== 'undefined' && isTyping) {
-                return; // لو بيكتب ميعملش تحديث وميختفيش الكلام
+                return; // إذا كان الأدمن يكتب، لا تقم بالتحديث لتجنب فقدان النص
             }
             await loadAdminOrders();
             await loadCartOrders();
@@ -909,26 +909,24 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
         }
         const messaging = firebase.messaging();
 
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                console.log('Admin notification permission granted.');
-                messaging.getToken({ vapidKey: 'BNZCfJEpZ9B8NJIzc-lI2WSYiHRzNTFvmcopfZL2O7kZV_xMoQPNlARnB9f-Y14qX_RzcRY9CL7k2XHeaMG-Z2U' }) 
-                .then((currentToken) => {
-                    if (currentToken) {
-                        // Save the admin token to a specific location
-                        const tokenRef = `${DB_URL}/admin/fcmTokens/${currentToken}.json`;
-                        fetch(tokenRef, {
-                            method: 'PUT',
-                            body: 'true' // Store a simple value
-                        });
-                    } else {
-                        console.log('No registration token available for admin.');
-                    }
-                }).catch((err) => {
-                    console.log('An error occurred while retrieving admin token. ', err);
-                });
-            }
-        });
+        // طلب الإذن مرة واحدة فقط
+        if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Admin notification permission granted.');
+                    messaging.getToken({ vapidKey: 'BNZCfJEpZ9B8NJIzc-lI2WSYiHRzNTFvmcopfZL2O7kZV_xMoQPNlARnB9f-Y14qX_RzcRY9CL7k2XHeaMG-Z2U' }) 
+                    .then((currentToken) => {
+                        if (currentToken) {
+                            // Save the admin token to a specific location
+                            const tokenRef = `${DB_URL}/admin/fcmTokens/${currentToken}.json`;
+                            fetch(tokenRef, { method: 'PUT', body: 'true' });
+                        } else {
+                            console.log('No registration token available for admin.');
+                        }
+                    }).catch((err) => { console.log('An error occurred while retrieving admin token. ', err); });
+                }
+            });
+        }
     }
 
     // تشغيل الميكانيزم فور تحميل الصفحة
