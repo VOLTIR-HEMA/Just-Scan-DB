@@ -154,8 +154,8 @@
             <div class="form-group">
                 <label>النوع (لتوجيه العروض الذكية)</label>
                 <select id="cust-gender" class="form-control">
-                    <option value="رجال">رجل</option>
-                    <option value="نساء">سيدة</option>
+                    <option value="زذكر">رجل</option>
+                    <option value="انثى">سيدة</option>
                 </select>
             </div>
             <button class="btn" onclick="registerCustomer()">🚀 إنشاء حساب العميل</button>
@@ -175,8 +175,8 @@
                 <label>الفئة المستهدفة</label>
                 <select id="offer-target" class="form-control">
                     <option value="الكل">الكل (يظهر للجميع)</option>
-                    <option value="رجال">رجال فقط</option>
-                    <option value="نساء">نساء فقط</option>
+                    <option value="ذكر">ذكور فقط</option>
+                    <option value="انثى">نساء فقط</option>
                 </select>
             </div>
             <button class="btn" style="background: #a855f7;" onclick="publishOffer()">📢 نشر العرض للعملاء</button>
@@ -298,8 +298,8 @@
         <div class="form-group">
             <label>النوع (لتوجيه العروض الذكية)</label>
             <select id="modal-customer-gender" class="form-control">
-                <option value="رجال">رجل</option>
-                <option value="نساء">سيدة</option>
+                <option value="ذكر">رجل</option>
+                <option value="انثى">سيدة</option>
             </select>
         </div>
 
@@ -497,7 +497,7 @@
         
         // عرض اسم العميل الحالي ونوعه في الخانات لتعديلها
         document.getElementById('modal-customer-name').value = user.name || name;
-        document.getElementById('modal-customer-gender').value = user.gender || 'رجال';
+        document.getElementById('modal-customer-gender').value = user.gender || 'ذكر';
         
         // مسح الحقول الجديدة بدلاً من الحقل القديم المحذوف
         document.getElementById('invoice-value').value = '';
