@@ -133,7 +133,7 @@
         .chat-fab { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; color: var(--bg-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; z-index: 90; transition: all 0.3s ease; }
         .chat-counter { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.7em; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--card-bg); }
         .chat-modal-content { background: var(--bg-dark); padding: 0; border-radius: 12px; width: 95%; max-width: 600px; height: 90vh; max-height: 700px; display: flex; flex-direction: column; border: 1px solid var(--border); }
-        .chat-header { background: var(--card-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .chat-header { background: var(--card-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); border-top-left-radius: 12px; border-top-right-radius: 12px; }
         .chat-body { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column-reverse; }
         .chat-footer { background: var(--card-bg); padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .chat-input { flex: 1; }
@@ -474,7 +474,7 @@ window.addEventListener('DOMContentLoaded', () => {
             currentUserData = user; // Store user data
 
             const pts = user.points || 0;
-            const cash = Math.floor(pts / 10);
+            const cash = Math.floor(pts / 20); // 100 نقطة = 5 جنيه, إذن 20 نقطة = 1 جنيه
 
             document.getElementById('ui-holder-name').innerText = user.name || "---";
             document.getElementById('welcome-name').innerText = user.name.split(' ')[0] || "عميلنا";
@@ -562,7 +562,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!userData) return;
         currentUserData = userData;
         const pts = userData.points || 0;
-        const cash = Math.floor(pts / 10);
+        const cash = Math.floor(pts / 20); // 100 نقطة = 5 جنيه, إذن 20 نقطة = 1 جنيه
 
         document.getElementById('ui-points-val').innerText = pts;
         document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي: ${cash} ج.م`;
@@ -575,6 +575,7 @@ window.addEventListener('DOMContentLoaded', () => {
         updateUI(currentUserData); // تحديث فوري من البيانات الحالية
         loadMyOrders();
         checkUnreadMessages();
+        loadChatMessages(); // تحديث المحادثات أيضاً
         loadAndFilterOffers(currentUserData.gender);
     }
 
@@ -1206,7 +1207,7 @@ window.addEventListener('DOMContentLoaded', () => {
     async function checkUnreadMessages() {
         if (!currentLoggedPhone) return;
         const counter = document.getElementById('chat-counter');
-        try {
+        try { // تم إضافة استدعاء هذه الدالة في أماكن أكثر لضمان التحديث
             const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
             const messages = await res.json();
             let unreadCount = 0;
