@@ -263,8 +263,8 @@
             <input type="password" id="reg-pass" class="input-phone" placeholder="🔑 اختر كلمة مرور" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
             
             <select id="reg-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
-                <option value="رجال">الجنس: رجل</option>
-                <option value="نساء">الجنس: سيدة</option>
+                <option value="ذكر">الجنس: ذكر</option>
+                <option value="انثى">الجنس: انثى</option>
             </select>
             
             <button class="btn-action" onclick="submitRegisterRequest()">🚀 تقديم الطلب الآن</button>
@@ -283,8 +283,8 @@
             <input type="text" id="settings-name" class="input-phone" placeholder="👤 الاسم الثنائي" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
             <input type="password" id="settings-pass" class="input-phone" placeholder="🔑 كلمة مرور جديدة (اختياري)" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
             <select id="settings-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
-                <option value="رجال">الجنس: رجل</option>
-                <option value="نساء">الجنس: سيدة</option>
+                <option value="ذكر">الجنس: ذكر</option>
+                <option value="انثى">الجنس: انثى</option>
             </select>
             <button class="btn-action" style="background-color: var(--success);" onclick="updateUserSettings()">💾 حفظ التعديلات</button>
 
@@ -933,7 +933,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function openSettingsModal() {
         if (!currentUserData) return;
         document.getElementById('settings-name').value = currentUserData.name || '';
-        document.getElementById('settings-gender').value = currentUserData.gender || 'رجال';
+        document.getElementById('settings-gender').value = currentUserData.gender || 'ذكر';
         document.getElementById('settings-pass').value = ''; // Clear password field
         document.getElementById('settingsModal').style.display = 'flex';
     }
