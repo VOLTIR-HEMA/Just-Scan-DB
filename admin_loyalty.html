@@ -673,7 +673,7 @@
     let lastOrdersCount = 0;
     let lastCartOrdersCount = 0;
 
-    async function loadAdminOrders(openIds = []) {
+    async function loadAdminOrders() {
         const container = document.getElementById('admin-orders-list');
         const counter = document.getElementById('orders-counter');
         try {
@@ -687,9 +687,10 @@
                     }
                 }
             }
-            container.innerHTML = '';
 
-            if(!orders) {
+            const finalOrders = orders || {};
+
+            if(Object.keys(finalOrders).length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات معلقة حالياً.</p>';
                 counter.style.display = 'none';
                 lastOrdersCount = 0;
@@ -698,7 +699,7 @@
 
             // --- تعديل منطق العداد ---
             // حساب الطلبات التي حالتها "معلق" فقط
-            const pendingOrders = Object.values(orders).filter(o => !o.status || o.status === 'معلق');
+            const pendingOrders = Object.values(finalOrders).filter(o => !o.status || o.status === 'معلق');
             const pendingCount = pendingOrders.length;
             counter.innerText = pendingCount;
             counter.style.display = pendingCount > 0 ? 'flex' : 'none';
@@ -715,8 +716,21 @@
             }
             lastOrdersCount = pendingCount;
 
-            Object.keys(orders).forEach(id => {
-                const o = orders[id];
+            // --- منطق التحديث الذكي لمنع الوميض ---
+            const existingIds = new Set([...container.querySelectorAll('.order-accordion-item')].map(el => el.dataset.id));
+            const newIds = new Set(Object.keys(finalOrders));
+
+            // 1. حذف الطلبات التي لم تعد موجودة
+            existingIds.forEach(id => {
+                if (!newIds.has(id)) {
+                    container.querySelector(`[data-id="${id}"]`)?.remove();
+                }
+            });
+
+            // 2. إضافة الطلبات الجديدة فقط
+            Object.keys(finalOrders).forEach(id => {
+                if (existingIds.has(id)) return; // تخطي الطلبات الموجودة بالفعل
+                const o = finalOrders[id];
                 const row = document.createElement('div');
                 row.className = 'order-accordion-item';
                 row.dataset.id = id; // مهم جداً للحفاظ على الحالة
@@ -767,19 +781,14 @@
                         </div>
                     </div>
                 `;
-                container.appendChild(row);
-            });
+                container.prepend(row); // استخدام prepend لإظهار الطلبات الجديدة في الأعلى
 
-            // إعادة ربط الأحداث وإعادة فتح العناصر التي كانت مفتوحة
-            container.querySelectorAll('.order-accordion-header').forEach(header => {
+                // ربط الحدث للعنصر الجديد فقط
+                const header = row.querySelector('.order-accordion-header');
                 header.addEventListener('click', () => {
-                    const item = header.parentElement;
-                    item.classList.toggle('active');
-                    const content = header.nextElementSibling;
-                    content.style.maxHeight = item.classList.contains('active') ? content.scrollHeight + "px" : "0px";
+                    row.classList.toggle('active');
+                    header.nextElementSibling.style.maxHeight = row.classList.contains('active') ? header.nextElementSibling.scrollHeight + "px" : "0px";
                 });
-                const parentItem = header.parentElement;
-                if (openIds.includes(parentItem.dataset.id)) { header.click(); }
             });
         } catch(e) { console.error(e); }
     }
@@ -940,13 +949,9 @@
                 return; // إذا كان الأدمن يكتب، لا تقم بالتحديث لتجنب فقدان النص
             }
 
-            // نحفظ الطلبات المفتوحة حالياً قبل إعادة التحميل
-            const openMedicineOrders = [...document.querySelectorAll('#admin-orders-list .order-accordion-item.active')].map(item => item.dataset.id);
-            const openCartOrders = [...document.querySelectorAll('#admin-cart-orders-list .order-accordion-item.active')].map(item => item.dataset.id);
-
-            // نقوم بالتحميل مع تمرير الطلبات المفتوحة
-            loadAdminOrders(openMedicineOrders);
-            loadCartOrders(openCartOrders);
+            // التحديث الذكي سيحافظ على حالة العناصر المفتوحة دون الحاجة لتمريرها
+            loadAdminOrders();
+            loadCartOrders();
             loadPendingRequests();
 
             // تحديث المحادثات فقط إذا كان القسم الخاص بها مرئياً
@@ -1350,26 +1355,38 @@
         }
     }
 
-    async function loadCartOrders(openIds = []) {
+    async function loadCartOrders() {
         const container = document.getElementById('admin-cart-orders-list');
         const counter = document.getElementById('cart-orders-counter');
         try {
             const res = await fetch(`${DB_URL}/cart_orders.json`);
             const orders = await res.json();
-            container.innerHTML = '';
-            if (!orders) {
+            
+            const finalOrders = orders || {};
+
+            if (Object.keys(finalOrders).length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">لا توجد طلبات من المتجر حالياً.</p>';
                 counter.style.display = 'none';
                 return;
             }
 
-            const pendingOrders = Object.values(orders).filter(o => !o.status || o.status === 'معلق');
+            const pendingOrders = Object.values(finalOrders).filter(o => !o.status || o.status === 'معلق');
             const pendingCount = pendingOrders.length;
             counter.innerText = pendingCount;
             counter.style.display = pendingCount > 0 ? 'flex' : 'none';
 
-            Object.keys(orders).forEach(id => {
-                const o = orders[id];
+            // --- منطق التحديث الذكي لمنع الوميض ---
+            const existingIds = new Set([...container.querySelectorAll('.order-accordion-item')].map(el => el.dataset.id));
+            const newIds = new Set(Object.keys(finalOrders));
+
+            existingIds.forEach(id => {
+                if (!newIds.has(id)) { container.querySelector(`[data-id="${id}"]`)?.remove(); }
+            });
+
+            Object.keys(finalOrders).forEach(id => {
+                if (existingIds.has(id)) return; // تخطي الطلبات الموجودة
+
+                const o = finalOrders[id];
                 const customerName = allCustomers[o.phone]?.name || "زبون";
                 const item = document.createElement('div');
                 item.className = 'order-accordion-item';
@@ -1407,19 +1424,13 @@
                         </div>
                     </div>
                 `;
-                container.appendChild(item);
-            });
+                container.prepend(item); // إضافة الطلبات الجديدة في الأعلى
 
-            // إعادة ربط الأحداث وإعادة فتح العناصر التي كانت مفتوحة
-            container.querySelectorAll('.order-accordion-header').forEach(header => {
+                const header = item.querySelector('.order-accordion-header');
                 header.addEventListener('click', () => {
-                    const item = header.parentElement;
                     item.classList.toggle('active');
-                    const content = header.nextElementSibling;
-                    content.style.maxHeight = item.classList.contains('active') ? content.scrollHeight + "px" : "0px";
+                    header.nextElementSibling.style.maxHeight = item.classList.contains('active') ? header.nextElementSibling.scrollHeight + "px" : "0px";
                 });
-                const parentItem = header.parentElement;
-                if (openIds.includes(parentItem.dataset.id)) { header.click(); }
             });
         } catch (e) { console.error("Error loading cart orders:", e); }
     }
