@@ -499,11 +499,12 @@
         document.getElementById('modal-customer-name').value = user.name || name;
         document.getElementById('modal-customer-gender').value = user.gender || 'رجال';
         
-        document.getElementById('points-amount').value = '';
+        // مسح الحقول الجديدة بدلاً من الحقل القديم المحذوف
         document.getElementById('invoice-value').value = '';
-        document.getElementById('modal-new-password').value = user.password || '';
+        document.getElementById('redeem-value').value = '';
+        document.getElementById('modal-new-password').value = ''; // مسح حقل كلمة المرور دائماً عند الفتح للأمان
         document.getElementById('modal-private-msg').value = user.privateMessage || '';
-document.getElementById('modal-private-offer').value = user.privateOffer || '';
+        document.getElementById('modal-private-offer').value = user.privateOffer || '';
 
         document.getElementById('pointsModal').style.display = 'flex';
     }
