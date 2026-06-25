@@ -33,7 +33,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: "https://i.imgur.com/rgy8E8S.png", // يمكنك وضع رابط أيقونة الصيدلية هنا
+    icon: "https://i.imgur.com/rgy8E8S.png", // أيقونة الصيدلية
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
