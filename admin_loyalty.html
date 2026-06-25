@@ -319,12 +319,14 @@
 
         <div class="modal-section">
             <label style="color: #fbbf24;">💰 إدارة النقاط والفواتير</label>
-            <div class="form-group">
-                <label for="invoice-value" style="font-size: 0.8em; color: var(--text-dim);">قيمة الفاتورة (اختياري، لتسجيل آخر عملية شراء)</label>
-                <input type="number" id="invoice-value" class="form-control" placeholder="مثال: 500">
+            <div class="form-group" style="background: rgba(34, 197, 94, 0.1); padding: 10px; border-radius: 6px;">
+                <label for="invoice-value" style="font-size: 0.9em; color: var(--success);">➕ إضافة نقاط من فاتورة جديدة (بالجنيه)</label>
+                <input type="number" id="invoice-value" class="form-control" placeholder="مثال: 150 (سيضيف 150 نقطة)">
             </div>
-            <label for="points-amount" style="font-size: 0.8em; color: var(--text-dim);">النقاط المراد إضافتها (أو خصمها بعلامة -)</label>
-            <input type="number" id="points-amount" class="form-control" placeholder="مثال: 50 أو -20">
+            <div class="form-group" style="background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 6px; margin-top: 10px;">
+                <label for="redeem-value" style="font-size: 0.9em; color: var(--danger);">➖ استخدام خصم من النقاط (بالجنيه)</label>
+                <input type="number" id="redeem-value" class="form-control" placeholder="مثال: 10 (سيخصم 200 نقطة)">
+            </div>
         </div>
         
         <div class="actions-btn" style="margin-top: 25px;">
@@ -525,8 +527,8 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
         const updatedName = document.getElementById('modal-customer-name').value.trim();
         const updatedGender = document.getElementById('modal-customer-gender').value;
         const newPass = document.getElementById('modal-new-password').value.trim();
-        const amountInput = document.getElementById('points-amount').value.trim();
         const invoiceValue = document.getElementById('invoice-value').value.trim();
+        const redeemValue = document.getElementById('redeem-value').value.trim();
         const privateMsg = document.getElementById('modal-private-msg').value.trim();
         const privateOffer = document.getElementById('modal-private-offer').value.trim();
         
@@ -546,33 +548,43 @@ document.getElementById('modal-private-offer').value = user.privateOffer || '';
                 privateOffer: privateOffer
             };
 
-            // --- الجزء الجديد: تحديث النقاط والسجل ---
-            if(amountInput !== "") {
-                const amount = parseInt(amountInput) || 0;
-                if (amount !== 0) {
-                    payload.points = Math.max(0, payload.points + amount);
+            // --- نظام النقاط المطور ---
+            let pointsChange = 0;
+            let historyEntry = null;
 
-                    const historyEntry = {
-                        date: Date.now(),
-                        points: Math.abs(amount),
-                        type: amount > 0 ? 'earned' : 'used',
-                        reason: amount > 0 ? 'نقاط من فاتورة شراء' : 'استبدال مقابل خصم'
-                    };
+            // 1. حساب النقاط المكتسبة من فاتورة جديدة
+            if (invoiceValue !== "") {
+                const earnedPoints = parseInt(invoiceValue) || 0;
+                if (earnedPoints > 0) {
+                    pointsChange += earnedPoints;
+                    payload.lastPurchaseValue = earnedPoints;
+                    payload.lastPurchasePoints = earnedPoints;
+                    historyEntry = { date: Date.now(), points: earnedPoints, type: 'earned', reason: `فاتورة بقيمة ${earnedPoints} ج.م` };
+                }
+            }
 
+            // 2. حساب النقاط المخصومة من استخدام الخصم
+            if (redeemValue !== "") {
+                const redeemedCash = parseInt(redeemValue) || 0;
+                if (redeemedCash > 0) {
+                    const pointsToRedeem = redeemedCash * 20; // 1 جنيه = 20 نقطة
+                    pointsChange -= pointsToRedeem;
+                    historyEntry = { date: Date.now(), points: pointsToRedeem, type: 'used', reason: `استبدال خصم بقيمة ${redeemedCash} ج.م` };
+                }
+            }
+
+            // 3. تحديث النقاط النهائية وإضافة سجل العملية
+            if (pointsChange !== 0) {
+                payload.points = Math.max(0, payload.points + pointsChange);
+                
+                if (historyEntry) {
                     // إرسال سجل النقطة إلى الفايربيز
                     await fetch(`${DB_URL}/customers/${phone}/points_history.json`, {
                         method: 'POST',
                         body: JSON.stringify(historyEntry)
                     });
-
-                    // إذا كانت النقاط مضافة (فاتورة جديدة)، قم بتحديث بيانات آخر عملية شراء
-                    if (amount > 0) {
-                        payload.lastPurchaseValue = parseInt(invoiceValue) || 0;
-                        payload.lastPurchasePoints = amount;
-                    }
                 }
             }
-            // --- نهاية الجزء الجديد ---
 
             // رفع البيانات المحدثة إلى حساب العميل مباشرة في الفايربيز
             const res = await fetch(`${DB_URL}/customers/${phone}.json`, { 
