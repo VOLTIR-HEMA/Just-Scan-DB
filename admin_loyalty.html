@@ -673,7 +673,7 @@
     let lastOrdersCount = 0;
     let lastCartOrdersCount = 0;
 
-    async function loadAdminOrders() {
+    async function loadAdminOrders(openIds = []) {
         const container = document.getElementById('admin-orders-list');
         const counter = document.getElementById('orders-counter');
         try {
@@ -703,7 +703,7 @@
             counter.innerText = pendingCount;
             counter.style.display = pendingCount > 0 ? 'flex' : 'none';
 
-            if (pendingCount > lastOrdersCount && lastOrdersCount !== 0) {
+            if (pendingCount > lastOrdersCount) {
                 Swal.fire({
                     icon: 'info',
                     title: 'طلب جديد وارد!',
@@ -713,12 +713,13 @@
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav');
                 audio.play().catch(e => console.log("Audio play blocked"));
             }
-            lastOrdersCount = currentOrdersCount;
+            lastOrdersCount = pendingCount;
 
             Object.keys(orders).forEach(id => {
                 const o = orders[id];
                 const row = document.createElement('div');
                 row.className = 'order-accordion-item';
+                row.dataset.id = id; // مهم جداً للحفاظ على الحالة
                 
                 if (!o.status || o.status === 'معلق') {
                     row.classList.add('new-order');
@@ -769,18 +770,16 @@
                 container.appendChild(row);
             });
 
-            // Add click event listeners for the new accordion headers
-            document.querySelectorAll('.order-accordion-header').forEach(header => {
+            // إعادة ربط الأحداث وإعادة فتح العناصر التي كانت مفتوحة
+            container.querySelectorAll('.order-accordion-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const item = header.parentElement;
                     item.classList.toggle('active');
                     const content = header.nextElementSibling;
-                    if (item.classList.contains('active')) {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                    } else {
-                        content.style.maxHeight = "0px";
-                    }
+                    content.style.maxHeight = item.classList.contains('active') ? content.scrollHeight + "px" : "0px";
                 });
+                const parentItem = header.parentElement;
+                if (openIds.includes(parentItem.dataset.id)) { header.click(); }
             });
         } catch(e) { console.error(e); }
     }
@@ -940,11 +939,19 @@
             if (typeof isTyping !== 'undefined' && isTyping) {
                 return; // إذا كان الأدمن يكتب، لا تقم بالتحديث لتجنب فقدان النص
             }
-            loadAdminOrders();
-            loadCartOrders();
+
+            // نحفظ الطلبات المفتوحة حالياً قبل إعادة التحميل
+            const openMedicineOrders = [...document.querySelectorAll('#admin-orders-list .order-accordion-item.active')].map(item => item.dataset.id);
+            const openCartOrders = [...document.querySelectorAll('#admin-cart-orders-list .order-accordion-item.active')].map(item => item.dataset.id);
+
+            // نقوم بالتحميل مع تمرير الطلبات المفتوحة
+            loadAdminOrders(openMedicineOrders);
+            loadCartOrders(openCartOrders);
             loadPendingRequests();
+
             // تحديث المحادثات فقط إذا كان القسم الخاص بها مرئياً
-            if (document.getElementById('chats-list-card').classList.contains('visible')) { loadAdminChats(); }
+            const chatsCard = document.getElementById('chats-list-card');
+            if (chatsCard && chatsCard.classList.contains('visible')) { loadAdminChats(); }
         }, 2000);
     }
 
@@ -1343,7 +1350,7 @@
         }
     }
 
-    async function loadCartOrders() {
+    async function loadCartOrders(openIds = []) {
         const container = document.getElementById('admin-cart-orders-list');
         const counter = document.getElementById('cart-orders-counter');
         try {
@@ -1366,6 +1373,7 @@
                 const customerName = allCustomers[o.phone]?.name || "زبون";
                 const item = document.createElement('div');
                 item.className = 'order-accordion-item';
+                item.dataset.id = id; // مهم جداً للحفاظ على الحالة
                 if (!o.status || o.status === 'معلق') {
                     item.classList.add('new-order');
                 }
@@ -1402,7 +1410,7 @@
                 container.appendChild(item);
             });
 
-            // إعادة ربط الأحداث مع الأكورديون الجديد
+            // إعادة ربط الأحداث وإعادة فتح العناصر التي كانت مفتوحة
             container.querySelectorAll('.order-accordion-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const item = header.parentElement;
@@ -1410,6 +1418,8 @@
                     const content = header.nextElementSibling;
                     content.style.maxHeight = item.classList.contains('active') ? content.scrollHeight + "px" : "0px";
                 });
+                const parentItem = header.parentElement;
+                if (openIds.includes(parentItem.dataset.id)) { header.click(); }
             });
         } catch (e) { console.error("Error loading cart orders:", e); }
     }
