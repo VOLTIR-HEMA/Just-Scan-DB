@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الطلبات</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8; --bg-dark: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9; --text-dim: #94a3b8; --border: #334155; --gold: #fbbf24; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: auto;
+            padding: 15px;
+        }
+        .header {
+            background-color: var(--card-bg);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            margin-left: 1rem;
+            transform: scaleX(-1);
+        }
+        .tabs-container {
+            margin: 20px auto;
+        }
+        .tab-buttons {
+            background: var(--card-bg);
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .tab-button {
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            position: relative;
+            transition: color 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+        .tab-content {
+            display: none;
+            padding: 20px 15px;
+            background-color: var(--card-bg);
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 0.25rem 0.25rem;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Re-using styles from index.html for consistency */
+        .textarea-order { width: 100%; height: 80px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 10px; outline: none; resize: none; font-family: inherit; margin-bottom: 12px; font-size: 1em; }
+        .file-input-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .file-label { background: #334155; border: 1px solid var(--border); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.95em; color: var(--text-main); font-weight: bold; }
+        .btn-action { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 8px; color: var(--bg-dark); font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        .order-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 0.95em; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .status-warning { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .image-viewer-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 9999; align-items: center; justify-content: center; }
+        .image-viewer-content { max-width: 90%; max-height: 85%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        .image-viewer-close { position: absolute; top: 20px; right: 20px; background: #ef4444; color: white; border: none; padding: 10px 20px; font-size: 1em; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="index.html">→</a>
+        <h1>الطلبات</h1>
+    </header>
+
+    <div class="wrapper">
+        <div class="tabs-container">
+            <!-- أزرار التبويبات -->
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="openTab(event, 'new-order')">🚀 طلب جديد</button>
+                <button class="tab-button" onclick="openTab(event, 'current-orders')">📋 طلباتي الحالية</button>
+            </div>
+
+            <!-- محتوى تبويب "طلب جديد" -->
+            <div id="new-order" class="tab-content active">
+                <h3 style="color: var(--primary);">إرسال طلب دواء جديد</h3>
+                <p style="color: var(--text-dim); font-size: 0.9em;">يمكنك كتابة أسماء الأدوية أو تصوير الروشتة وإرفاقها.</p>
+                <div class="order-box" style="border: none; padding: 0; margin-bottom: 0;">
+                    <textarea id="order-text" class="textarea-order" placeholder="اكتب أسماء الأدوية المطلوبة هنا أو أي ملاحظات للصيدلية..."></textarea>
+                    <div class="file-input-wrapper" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label for="order-file" class="file-label">📷 تصوير أو إرفاق الروشتة</label>
+                            <input type="file" id="order-file" accept="image/*" style="display: none;" onchange="processAndDisplayFile()">
+                            <span id="file-name-display" style="font-size: 0.85em; color: var(--text-dim);">لم يتم اختيار صورة</span>
+                        </div>
+                        <button id="btn-remove-file" type="button" onclick="removeSelectedFile()" style="display: none; background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold;">❌ حذف الصورة المختارة</button>
+                    </div>
+                    <button class="btn-action" style="padding: 12px; font-size: 1em;" onclick="submitMedicineOrder()">إرسال الطلب للصيدلية</button>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب "طلباتي الحالية" -->
+            <div id="current-orders" class="tab-content">
+                <div id="my-orders-container">
+                    <p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">جاري تحميل طلباتك...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customImageViewer" class="image-viewer-modal">
+        <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
+        <img id="viewerTargetImage" class="image-viewer-content" src="" alt="الروشتة">
+    </div>
+
+    <script>
+        const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
+        let currentLoggedPhone = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            currentLoggedPhone = localStorage.getItem('customer_phone');
+            if (!currentLoggedPhone) {
+                // If not logged in, redirect to main page to log in
+                window.location.href = 'index.html';
+                return;
+            }
+            loadMyOrders();
+        });
+
+        function openTab(evt, tabName) {
+            let i, tabcontent, tabbuttons;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        async function submitMedicineOrder() {
+            let compressedImageBase64 = document.getElementById('order-file').__compressedImage || "";
+            const textVal = document.getElementById('order-text').value.trim();
+
+            if (!textVal && !compressedImageBase64) {
+                return Swal.fire({ icon: 'warning', title: 'طلب فارغ', text: '❌ يرجى كتابة الأدوية المطلوبة أو إرفاق صورة الروشتة أولاً.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+
+            const payload = {
+                phone: currentLoggedPhone,
+                details: textVal || "تم إرفاق صورة الروشتة",
+                image: compressedImageBase64 || "",
+                status: "معلق", 
+                date: Date.now()
+            };
+
+            try {
+                const res = await fetch(`${DB_URL}/medicine_orders.json`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    Swal.fire({ icon: 'success', title: 'تم الإرسال', text: '🎉 تم إرسال طلبك بنجاح وجاري مراجعته!', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+                    document.getElementById('order-text').value = '';
+                    removeSelectedFile();
+                    loadMyOrders(); 
+                }
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'خطأ', text: '❌ خطأ أثناء إرسال الطلب: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
+            }
+        }
+
+        async function loadMyOrders() {
+            const container = document.getElementById('my-orders-container');
+            try {
+                const res = await fetch(`${DB_URL}/medicine_orders.json`);
+                const allOrders = await res.json();
+                const cartRes = await fetch(`${DB_URL}/cart_orders.json`);
+                const cartOrders = await cartRes.json();
+
+                const myOrders = {};
+                if (allOrders) {
+                    for (const id in allOrders) {
+                        if (allOrders[id].phone === currentLoggedPhone) { myOrders[id] = { ...allOrders[id], type: 'medicine' }; }
+                    }
+                }
+                if (cartOrders) {
+                    for (const id in cartOrders) {
+                        if (cartOrders[id].phone === currentLoggedPhone) { myOrders[id] = { ...cartOrders[id], type: 'cart' }; }
+                    }
+                }
+
+                if (Object.keys(myOrders).length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا توجد طلبات مرسلة حالياً.</p>';
+                    return;
+                }
+
+                container.innerHTML = ''; // Clear previous content
+                const sortedIds = Object.keys(myOrders).sort((a, b) => myOrders[b].date - myOrders[a].date);
+
+                sortedIds.forEach(id => {
+                    const ord = myOrders[id];
+                    let statusClass = "status-pending";
+                    if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية" || ord.status === "تم التجهيز") statusClass = "status-success";
+                    if(ord.status === "غير متوفر") statusClass = "status-danger";
+                    if(ord.status === "تم طلبه") statusClass = "status-warning";
+
+                    const row = document.createElement('div');
+                    row.className = 'order-item';
+                    row.dataset.id = id;
+
+                    if (ord.type === 'medicine') {
+                        row.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                                <span style="color:var(--primary); font-size:0.85em;">💊 طلب دواء | ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
+                                <button onclick="cancelMyOrder('${id}', 'medicine_orders')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء</button>
+                            </div>
+                            <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
+                            ${ord.image ? `<div style="margin:5px 0;"><span onclick="openImageViewer('${ord.image}')" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline; cursor:pointer;">🖼️ عرض الروشتة</span></div>` : ''}
+                            <div class="status-badge ${statusClass}" style="margin-top:10px;">الحالة: ${ord.status || 'قيد المراجعة'}</div>
+                            ${ord.chat ? `<div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em;"><b>💬 رد الصيدلية:</b> <span style="color:#fff;">${ord.chat}</span></div>` : ''}
+                        `;
+                    } else if (ord.type === 'cart') {
+                        row.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                                <span style="color:var(--success); font-size:0.85em;">🛒 طلب متجر | ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
+                                <button onclick="cancelMyOrder('${id}', 'cart_orders')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء</button>
+                            </div>
+                            <div style="margin:8px 0; color:var(--text-main); font-weight:500;">إجمالي الطلب: ${ord.totalPrice.toFixed(2)} ج.م</div>
+                            <div class="status-badge ${statusClass}" style="margin-top:10px;">الحالة: ${ord.status || 'قيد المراجعة'}</div>
+                        `;
+                    }
+                    container.appendChild(row);
+                });
+
+            } catch (e) {
+                console.error("خطأ أثناء جلب الطلبات: ", e);
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل الطلبات.</p>';
+            }
+        }
+
+        async function cancelMyOrder(id, orderType) {
+            Swal.fire({ title: 'هل أنت متأكد؟', text: "هل تريد حقاً إلغاء هذا الطلب؟", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'نعم، إلغاء', cancelButtonText: 'تراجع', background: '#1e293b', color: '#f1f5f9' })
+            .then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await fetch(`${DB_URL}/${orderType}/${id}.json`, { method: 'DELETE' });
+                        Swal.fire({ title: 'تم الإلغاء!', text: '✅ تم إلغاء الطلب بنجاح.', icon: 'success', background: '#1e293b', color: '#f1f5f9' });
+                        loadMyOrders(); 
+                    } catch(e) { Swal.fire('خطأ!', "حدث خطأ أثناء إلغاء الطلب.", 'error'); }
+                }
+            });
+        }
+
+        function processAndDisplayFile() {
+            const input = document.getElementById('order-file');
+            const display = document.getElementById('file-name-display');
+            const removeBtn = document.getElementById('btn-remove-file');
+            input.__compressedImage = "";
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                display.innerText = "⏳ جاري معالجة الصورة...";
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        const max_size = 1024;
+                        if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
+                        else { if (height > max_size) { width *= max_size / height; height = max_size; } }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        input.__compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+                        display.innerText = "✔️ تم تجهيز الصورة بنجاح";
+                        removeBtn.style.display = "inline-block";
+                    };
+                };
+            }
+        }
+        function removeSelectedFile() {
+            document.getElementById('order-file').value = "";
+            document.getElementById('file-name-display').innerText = "لم يتم اختيار صورة";
+            document.getElementById('btn-remove-file').style.display = "none";
+            document.getElementById('order-file').__compressedImage = ""; 
+        }
+        function openImageViewer(base64Src) {
+            if(!base64Src) return;
+            document.getElementById('viewerTargetImage').src = base64Src;
+            document.getElementById('customImageViewer').style.display = 'flex';
+        }
+        function closeImageViewer() {
+            document.getElementById('customImageViewer').style.display = 'none';
+            document.getElementById('viewerTargetImage').src = '';
+        }
+    </script>
+
+</body>
+</html>
