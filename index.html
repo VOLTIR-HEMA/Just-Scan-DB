@@ -51,6 +51,25 @@
             --warning: #f59e0b;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* --- New Cart Styles --- */
+        .cart-item { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; }
+        .cart-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .cart-item-details { flex: 1; }
+        .cart-item-details p { margin: 0; }
+        .cart-item-name { font-weight: bold; color: var(--text-main); }
+        .cart-item-price { font-size: 0.9em; color: var(--success); }
+        .quantity-control { display: flex; align-items: center; gap: 10px; }
+        .quantity-btn { background: #334155; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
+        .quantity-value { font-weight: bold; min-width: 20px; text-align: center; }
+        .nav-buttons-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .nav-button { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; color: var(--primary); font-size: 1.1em; font-weight: bold; text-decoration: none; transition: all 0.2s ease; }
+        .nav-button:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .nav-button span { font-size: 2em; display: block; margin-bottom: 10px; }
         body { font-family: system-ui, sans-serif; background-color: #000; color: var(--text-main); margin: 0; padding: 0; direction: rtl; }
         .wrapper { max-width: 500px; margin: auto; padding: 15px; }
         
@@ -180,10 +199,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <span style="font-weight: bold; color: var(--primary);">أهلاً بك، <span id="welcome-name"></span></span>
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="position: relative; cursor: pointer;" onclick="openCartModal()">
+                <a href="cart.html" style="position: relative; cursor: pointer; color: var(--text-main); text-decoration: none;">
                     <span style="font-size: 1.5em;">🛒</span>
                     <span id="cart-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
-                </div>
+                </a>
                 <div style="position: relative; cursor: pointer;" onclick="openChatModal()">
                     <span style="font-size: 1.5em;">💬</span>
                     <span id="chat-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
@@ -211,40 +230,18 @@
             </div>
         </div>
 
-        <div class="accordion-item">
-            <button class="accordion-header"><span>🚀 إرسال طلب جديد</span><span class="arrow">▼</span></button>
-            <div class="accordion-content">
-                <div class="order-box" style="border: none; padding: 0 0 15px 0; margin-bottom: 0;">
-                    <textarea id="order-text" class="textarea-order" placeholder="اكتب أسماء الأدوية المطلوبة هنا أو أي ملاحظات للصيدلية..."></textarea>
-                    <div class="file-input-wrapper" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label for="order-file" class="file-label">📷 تصوير أو إرفاق الروشتة</label>
-                            <input type="file" id="order-file" accept="image/*" style="display: none;" onchange="processAndDisplayFile()">
-                            <span id="file-name-display" style="font-size: 0.85em; color: var(--text-dim);">لم يتم اختيار صورة</span>
-                        </div>
-                        <button id="btn-remove-file" type="button" onclick="removeSelectedFile()" style="display: none; background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold;">❌ حذف الصورة المختارة</button>
-                    </div>
-                    <button class="btn-action" style="padding: 12px; font-size: 1em;" onclick="submitMedicineOrder()">إرسال الطلب للصيدلية</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="accordion-item">
-            <button class="accordion-header"><span>📋 طلباتي الحالية</span><span class="arrow">▼</span></button>
-            <div class="accordion-content">
-                <div id="my-orders-container" style="padding-bottom: 15px;">
-                    <p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا توجد طلبات مرسلة حالياً.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="accordion-item">
-            <button class="accordion-header"><span>🛍️ تسوق منتجاتنا الآن</span><span class="arrow">▼</span></button>
-            <div class="accordion-content">
-                <div id="products-grid" class="product-grid">
-                    <p style="color: var(--text-dim); text-align: center; grid-column: 1 / -1;">جاري تحميل المنتجات...</p>
-                </div>
-            </div>
+        <!-- ================================================== -->
+        <!--      New Navigation Buttons                      -->
+        <!-- ================================================== -->
+        <div class="nav-buttons-container">
+            <a href="shop.html" class="nav-button">
+                <span>🛍️</span>
+                تسوق منتجاتنا
+            </a>
+            <a href="orders.html" class="nav-button">
+                <span>📋</span>
+                الطلبات
+            </a>
         </div>
 
         <h2 style="font-size: 1.2em; border-right: 3px solid var(--primary); padding-right: 8px; color: var(--primary); margin-bottom: 15px;">🎁 العروض والخصومات</h2>
@@ -338,28 +335,13 @@
         </div>
     </div>
 
-    <div id="cartModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:101; align-items: center; justify-content: center; padding: 15px;">
-        <div class="modal-content">
-            <h3 style="display: flex; justify-content: space-between; align-items: center;">
-                <span>🛒 سلة التسوق</span>
-                <button onclick="closeCartModal()" style="background:transparent; border:none; color: var(--text-dim); font-size: 1.5em; cursor:pointer;">&times;</button>
-            </h3>
-            <div id="cart-items-container" style="max-height: 50vh; overflow-y: auto; margin-bottom: 15px;"></div>
-            <div style="border-top: 1px solid var(--border); padding-top: 15px; text-align: center;">
-                <h4 style="margin: 0 0 15px 0;">الإجمالي: <span id="cart-total" style="color: var(--success); font-weight: bold;">0 ج.م</span></h4>
-                <button class="btn-action" style="background: var(--success);" onclick="submitCartOrder()">✅ إرسال الطلب للصيدلية</button>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>
     const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
     let currentLoggedPhone = null;
     let currentUserData = null;
-    let chatUpdateInterval = null;
-    let shoppingCart = [];
+    let shoppingCart = {}; // Changed to an object for quantity management
     let eventSource = null; // لإدارة الاتصال اللحظي
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -379,22 +361,20 @@ window.addEventListener('DOMContentLoaded', () => {
             if(loginUI) loginUI.style.display = 'block';
         }
 
-        // Accordion Logic
-        document.querySelectorAll('.accordion-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const item = header.parentElement;
-                item.classList.toggle('active');
-                const content = header.nextElementSibling;
-                if (item.classList.contains('active')) {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                } else {
-                    content.style.maxHeight = "0px";
-                }
-            });
-        });
+        // Load cart from localStorage
+        const savedCart = localStorage.getItem('shoppingCart');
+        if (savedCart) { shoppingCart = JSON.parse(savedCart); }
+        updateCartCounter(); // Just update the counter, no need to render the full cart
+    });
 
-        // Event listener for sending chat message on Enter key
-        document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
+    // نستخدم pageshow لضمان تحديث عداد السلة حتى عند العودة للصفحة من خلال زر "الخلف" في المتصفح
+    window.addEventListener('pageshow', function(event) {
+        // event.persisted تكون true إذا تم استرجاع الصفحة من الـ cache
+        if (event.persisted) {
+            if (localStorage.getItem('customer_phone')) {
+                updateCartCounter();
+            }
+        }
     });
 
     async function checkAnnouncement() {
@@ -514,8 +494,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             loadAndFilterOffers(user.gender || "الكل");
-            loadMyOrders();
-            loadStoreProducts();
+            updateCartCounter(); // تحديث عداد السلة بعد تسجيل الدخول
             startRealtimeUpdates(phone); // بدء التحديثات اللحظية
             setupNotifications(); // طلب إذن الإشعارات من المستخدم
 
@@ -638,123 +617,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function submitMedicineOrder() {
-        let compressedImageBase64 = document.getElementById('order-file').__compressedImage || "";
-        const textVal = document.getElementById('order-text').value.trim();
-        const fileInput = document.getElementById('order-file');
-
-        if (!textVal && !compressedImageBase64) {
-            return Swal.fire({ icon: 'warning', title: 'طلب فارغ', text: '❌ يرجى كتابة الأدوية المطلوبة أو إرفاق صورة الروشتة أولاً.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
-        }
-
-        const payload = {
-            phone: currentLoggedPhone,
-            details: textVal || "تم إرفاق صورة الروشتة",
-            image: compressedImageBase64 || "",
-            status: "معلق", 
-            date: Date.now()
-        };
-
-        try {
-            const res = await fetch(`${DB_URL}/medicine_orders.json`, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'تم الإرسال', text: '🎉 تم إرسال طلبك بنجاح وجاري مراجعته وتجهيزه داخل الصيدلية!', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
-                document.getElementById('order-text').value = '';
-                removeSelectedFile();
-                loadMyOrders(); 
-            }
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'خطأ', text: '❌ خطأ أثناء إرسال الطلب: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
-        }
-    }
-
-    async function loadMyOrders() {
-        const container = document.getElementById('my-orders-container');
-        try {
-            const res = await fetch(`${DB_URL}/medicine_orders.json`);
-            const orders = await res.json();
-
-            const myOrders = {};
-            if (orders) {
-                for (const id in orders) {
-                    if (orders[id].phone === currentLoggedPhone) {
-                        myOrders[id] = orders[id];
-                    }
-                }
-            }
-
-            if (Object.keys(myOrders).length === 0) {
-                container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا توجد طلبات مرسلة حالياً.</p>';
-                return;
-            }
-
-            // --- منطق التحديث الذكي لمنع الوميض ---
-            const existingIds = new Set([...container.querySelectorAll('.order-item')].map(el => el.dataset.id));
-            const newIds = new Set(Object.keys(myOrders));
-
-            // 1. تحديث أو إضافة الطلبات
-            newIds.forEach(id => {
-                const ord = myOrders[id];
-                const existingElement = container.querySelector(`[data-id="${id}"]`);
-                
-                // تحديد لون وشعار الحالة
-                    let statusClass = "status-pending";
-                    if(ord.status === "متوفر" || ord.status === "متوفر بالصيدلية") statusClass = "status-success";
-                    if(ord.status === "غير متوفر") statusClass = "status-danger";
-                    if(ord.status === "تم طلبه") statusClass = "status-warning";
-
-                const orderHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                        <span style="color:var(--primary); font-size:0.85em;">📅 التاريخ: ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
-                        <button onclick="cancelMyOrder('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء الطلب</button>
-                    </div>
-                    <div style="margin:8px 0; color:var(--text-main); font-weight:500;">${ord.details}</div>
-                    
-                    ${ord.image ? `<div style="margin:5px 0;"><span onclick="openImageViewer('${ord.image}')" style="color:var(--primary); font-size:0.85em; font-weight:bold; text-decoration:underline; cursor:pointer;">🖼️ عرض الروشتة المرفقة</span></div>` : ''}
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
-                        <span class="status-badge ${statusClass}">⏳ الحالة: ${ord.status || 'قيد المراجعة والتحضير'}</span>
-                    </div>
-
-                    ${ord.chat ? `
-                        <div style="margin-top:10px; background:rgba(56, 189, 248, 0.1); border-right: 3px solid var(--primary); padding:8px; border-radius:4px; font-size:0.9em; text-align:right;">
-                            <b style="color:var(--primary);">💬 رد الصيدلية:</b> <span style="color:#fff;">${ord.chat}</span>
-                        </div>
-                    ` : ''}
-                `;
-
-                if (existingElement) {
-                    // إذا كان الطلب موجوداً، قم بتحديث محتواه فقط
-                    existingElement.innerHTML = orderHTML;
-                } else {
-                    // إذا كان الطلب جديداً، قم بإنشائه وإضافته
-                    const row = document.createElement('div');
-                    row.className = 'order-item';
-                    row.dataset.id = id;
-                    row.innerHTML = orderHTML;
-                    // إزالة رسالة "لا توجد طلبات" إذا كانت موجودة
-                    const placeholder = container.querySelector('p');
-                    if (placeholder) placeholder.remove();
-                    container.prepend(row);
-                }
-            });
-
-            // 2. حذف الطلبات التي لم تعد موجودة في البيانات الجديدة
-            existingIds.forEach(id => {
-                if (!newIds.has(id)) {
-                    container.querySelector(`[data-id="${id}"]`)?.remove();
-                }
-            });
-
-        } catch (e) {
-            console.error("خطأ أثناء جلب الطلبات: ", e);
-        }
-    }
-
     async function loadPointsHistory() {
         const container = document.getElementById('points-history-container');
         container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">جاري تحميل سجل النقاط...</p>';
@@ -797,54 +659,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function processAndDisplayFile() {
-        const input = document.getElementById('order-file');
-        const display = document.getElementById('file-name-display');
-        const removeBtn = document.getElementById('btn-remove-file');
-        input.__compressedImage = ""; // Reset custom property
-        
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            display.innerText = "⏳ جاري معالجة وضغط الصورة...";
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const max_size = 1024;
-                    
-                    if (width > height) {
-                        if (width > max_size) { height *= max_size / width; width = max_size; }
-                    } else {
-                        if (height > max_size) { width *= max_size / height; height = max_size; }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    input.__compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-                    
-                    display.innerText = "✔️ تم تجهيز الروشتة بنجاح";
-                    removeBtn.style.display = "inline-block";
-                };
-            };
-        }
-    }
-
-    function removeSelectedFile() {
-        document.getElementById('order-file').value = "";
-        document.getElementById('file-name-display').innerText = "لم يتم اختيار صورة";
-        document.getElementById('btn-remove-file').style.display = "none";
-        document.getElementById('order-file').__compressedImage = ""; 
-    }
-
     function openPointsDetailModal() {
         document.getElementById('modal-last-purchase-val').innerText = `${currentUserData.lastPurchaseValue || 0} ج.م`;
         document.getElementById('modal-last-purchase-points').innerText = currentUserData.lastPurchasePoints || 0;
@@ -857,7 +671,6 @@ window.addEventListener('DOMContentLoaded', () => {
     function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
     function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
     function closeChatModal() { document.getElementById('chatModal').style.display = 'none'; mediaRecorder = null; audioChunks = []; }
-    function closeCartModal() { document.getElementById('cartModal').style.display = 'none'; }
 
     async function submitRegisterRequest() {
         const name = document.getElementById('reg-name').value.trim();
@@ -1031,296 +844,21 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <script>
     // --- Store & Cart Logic ---
-    function updateCartCounter() {
-        const counter = document.getElementById('cart-counter');
-        const count = shoppingCart.length;
-        counter.innerText = count;
-        counter.style.display = count > 0 ? 'flex' : 'none';
-    }
+    async function updateCartCounter() {
+        const phone = localStorage.getItem('customer_phone');
+        if (!phone) return;
 
-    function addToCart(id, name, price, image) {
-        shoppingCart.push({ id, name, price: parseFloat(price), image });
-        localStorage.setItem('shoppingCart', JSON.stringify(shoppingCart));
-        updateCartCounter();
-        Swal.fire({ icon: 'success', title: 'تمت الإضافة', text: `تم إضافة "${name}" إلى سلة التسوق.`, toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-    }
-
-    function openCartModal() {
-        const container = document.getElementById('cart-items-container');
-        container.innerHTML = '';
-        let total = 0;
-        if (shoppingCart.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">سلة التسوق فارغة.</p>';
-        } else {
-            shoppingCart.forEach((item, index) => {
-                total += item.price;
-                const itemDiv = document.createElement('div');
-                itemDiv.style = "display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;";
-                itemDiv.innerHTML = `
-                    <img src="${item.image}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;">
-                    <div style="flex: 1;">
-                        <p style="margin: 0; font-weight: bold;">${item.name}</p>
-                        <p style="margin: 0; font-size: 0.9em; color: var(--success);">${item.price} ج.م</p>
-                    </div>
-                    <button onclick="removeFromCart(${index})" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">×</button>
-                `;
-                container.appendChild(itemDiv);
-            });
-        }
-        document.getElementById('cart-total').innerText = `${total.toFixed(2)} ج.م`;
-        document.getElementById('cartModal').style.display = 'flex';
-    }
-
-    function removeFromCart(index) {
-        shoppingCart.splice(index, 1);
-        localStorage.setItem('shoppingCart', JSON.stringify(shoppingCart));
-        updateCartCounter();
-        openCartModal(); // Refresh the modal view
-    }
-
-    async function submitCartOrder() {
-        if (shoppingCart.length === 0) {
-            return Swal.fire('سلة فارغة', 'الرجاء إضافة منتجات للسلة أولاً.', 'warning');
-        }
-        const total = shoppingCart.reduce((sum, item) => sum + item.price, 0);
-        const payload = {
-            phone: currentLoggedPhone,
-            items: shoppingCart,
-            totalPrice: total,
-            date: Date.now(),
-            status: 'معلق'
-        };
         try {
-            await fetch(`${DB_URL}/cart_orders.json`, { method: 'POST', body: JSON.stringify(payload) });
-            Swal.fire('تم إرسال الطلب', 'تم إرسال طلبك من المتجر بنجاح وجاري تجهيزه.', 'success');
-            shoppingCart = [];
-            localStorage.removeItem('shoppingCart');
-            updateCartCounter();
-            closeCartModal();
-        } catch (e) { Swal.fire('خطأ', 'فشل إرسال طلب المتجر.', 'error'); }
-    }
-
-    async function loadStoreProducts() {
-        const grid = document.getElementById('products-grid');
-        try {
-            const res = await fetch(`${DB_URL}/products.json`);
-            const products = await res.json();
-            grid.innerHTML = '';
-            if (!products) {
-                grid.innerHTML = '<p style="color: var(--text-dim); text-align: center; grid-column: 1 / -1;">لا توجد منتجات في المتجر حالياً.</p>';
-                return;
-            }
-            Object.keys(products).forEach(id => {
-                const p = products[id];
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <img src="${p.image}" alt="${p.name}" onclick="openImageViewer('${p.image}')">
-                    <div class="product-info">
-                        <h4>${p.name}</h4>
-                        <p class="product-price">${p.price} ج.م</p>
-                        <button class="btn-secondary" style="width: 100%; font-size: 0.9em; padding: 8px;" onclick="addToCart('${id}', '${p.name}', ${p.price}, '${p.image}')">🛒 أضف للسلة</button>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        } catch (e) { grid.innerHTML = '<p>خطأ في تحميل المنتجات.</p>'; }
-    }
-
-    // --- Chat System Logic for Customer ---
-    let mediaRecorder;
-    let audioChunks = [];
-
-    async function openChatModal() {
-        document.getElementById('chatModal').style.display = 'flex';
-        loadChatMessages();
-
-        // Mark admin messages as read
-        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
-        const res = await fetch(chatRef);
-        const messages = await res.json();
-        if (messages) {
-            for (const key in messages) {
-                if (messages[key].sender === 'admin' && !messages[key].readByCustomer) {
-                    await fetch(`${DB_URL}/chats/${currentLoggedPhone}/${key}/readByCustomer.json`, { method: 'PUT', body: 'true' });
-                }
-            }
-        }
-        checkUnreadMessages(); // Update counter immediately
-
-        // Event listener for sending image
-        const imageInput = document.getElementById('chat-image-input');
-        imageInput.onchange = () => {
-            const file = imageInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => sendChatMessage('image', e.target.result);
-                reader.readAsDataURL(file);
-            }
-            imageInput.value = '';
-        };
-    }
-
-    async function loadChatMessages() {
-        const chatBody = document.getElementById('chat-body');
-        chatBody.innerHTML = '<p style="color:var(--text-dim); text-align:center;">جاري تحميل الرسائل...</p>';
-
-        const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
-        const messages = await res.json();
-        chatBody.innerHTML = '';
-
-        if (messages) {
-            const sortedKeys = Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp);
-            sortedKeys.forEach(key => renderMessage(messages[key]));
-        }
-    }
-
-    function renderMessage(msg) {
-        const chatBody = document.getElementById('chat-body');
-        const bubble = document.createElement('div');
-        bubble.classList.add('msg-bubble', msg.sender);
-
-        let content = '';
-        if (msg.type === 'text') {
-            content = msg.content.replace(/\n/g, '<br>');
-        } else if (msg.type === 'image') {
-            content = `<img src="${msg.content}" alt="صورة" onclick="openImageViewer('${msg.content}')">`;
-        } else if (msg.type === 'voice') {
-            content = `<audio controls src="${msg.content}"></audio>`;
-        }
-
-        bubble.innerHTML = `<div>${content}</div><div class="msg-timestamp">${new Date(msg.timestamp).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</div>`;
-        chatBody.prepend(bubble);
-    }
-
-    async function sendChatMessage(type = 'text', content = null) {
-        const textInput = document.getElementById('chat-input');
-        const messageContent = content || textInput.value.trim();
-        if (!messageContent) return;
-
-        const message = { sender: 'customer', type: type, content: messageContent, timestamp: Date.now() };
-
-        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
-        const res = await fetch(chatRef);
-        const messages = await res.json();
-        if (messages && Object.keys(messages).length >= 40) {
-            const oldestKey = Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp)[0];
-            await fetch(`${DB_URL}/chats/${currentLoggedPhone}/${oldestKey}.json`, { method: 'DELETE' });
-        }
-
-        await fetch(chatRef, { method: 'POST', body: JSON.stringify(message) });
-        if (type === 'text') textInput.value = '';
-        loadChatMessages();
-    }
-
-    async function toggleRecording() {
-        const recordBtn = document.getElementById('record-btn');
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-            recordBtn.classList.remove('recording');
-            recordBtn.innerHTML = "🎤";
-        } else {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const reader = new FileReader();
-                    reader.onload = (e) => sendChatMessage('voice', e.target.result);
-                    reader.readAsDataURL(audioBlob);
-                    stream.getTracks().forEach(track => track.stop());
-                };
-                mediaRecorder.start();
-                recordBtn.classList.add('recording');
-                recordBtn.innerHTML = "🛑";
-            } catch (err) {
-                Swal.fire('خطأ', 'لم يتمكن المتصفح من الوصول للميكروفون. يرجى التأكد من إعطاء الإذن.', 'error');
-            }
-        }
-    }
-
-    async function checkUnreadMessages() {
-        if (!currentLoggedPhone) return;
-        const counter = document.getElementById('chat-counter');
-        try { // تم إضافة استدعاء هذه الدالة في أماكن أكثر لضمان التحديث
-            const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
-            const messages = await res.json();
-            let unreadCount = 0;
-            if (messages) {
-                for (const key in messages) {
-                    if (messages[key].sender === 'admin' && !messages[key].readByCustomer) {
-                        unreadCount++;
-                    }
-                }
-            }
-            counter.innerText = unreadCount;
-            counter.style.display = unreadCount > 0 ? 'flex' : 'none';
+            const res = await fetch(`${DB_URL}/carts/${phone}.json`);
+            const cart = await res.json();
+            const count = cart ? Object.keys(cart).length : 0;
+            
+            const counter = document.getElementById('cart-counter');
+            counter.innerText = count;
+            counter.style.display = count > 0 ? 'flex' : 'none';
         } catch (e) {
-            console.error("Error checking unread messages:", e);
+            console.error("Failed to update cart counter:", e);
         }
-    }
-
-    // --- Push Notification Logic ---
-    function setupNotifications() {
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        const firebaseConfig = {
-          apiKey: "AIzaSyB4hRnaIq3Dn4o8cqgTVk3vg_XXmwyqOlA",
-          authDomain: "my-assistant-7c330.firebaseapp.com",
-          databaseURL: "https://my-assistant-7c330-default-rtdb.firebaseio.com",
-          projectId: "my-assistant-7c330",
-          storageBucket: "my-assistant-7c330.firebasestorage.app",
-          messagingSenderId: "509561059857",
-          appId: "1:509561059857:web:edeb6a4a2526f15bb00fb0",
-          measurementId: "G-ZPM602TWDY"
-        };
-
-        if (firebase.apps.length === 0) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const messaging = firebase.messaging();
-
-        // سنقوم باستدعاء هذه الدالة يدوياً بدلاً من تلقائياً
-        // if (Notification.permission !== 'denied' && Notification.permission !== 'granted') { ... }
-    }
-
-    // دالة جديدة لطلب الإذن يدوياً عند الضغط على الزر
-    function requestNotificationPermissionManually() {
-        if (!('Notification' in window)) {
-            return Swal.fire('غير مدعوم', 'عذراً، الإشعارات غير مدعومة في هذا المتصفح أو التطبيق.', 'error');
-        }
-
-        Swal.fire({
-            title: 'تفعيل الإشعارات',
-            text: 'سنطلب منك الآن الموافقة على استقبال الإشعارات لتصلك آخر العروض وحالة طلباتك. قد تظهر لك نافذة منبثقة لطلب الإذن.',
-            icon: 'info',
-            confirmButtonText: 'حسناً، اطلب الإذن',
-            showCancelButton: true,
-            cancelButtonText: 'إلغاء'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Notification.requestPermission().then((permission) => {
-                    if (permission === 'granted') {
-                        Swal.fire('تم بنجاح!', 'تم تفعيل الإشعارات بنجاح.', 'success');
-                        const messaging = firebase.messaging();
-                        messaging.getToken({ vapidKey: 'BNZCfJEpZ9B8NJIzc-lI2WSYiHRzNTFvmcopfZL2O7kZV_xMoQPNlARnB9f-Y14qX_RzcRY9CL7k2XHeaMG-Z2U' })
-                        .then((currentToken) => {
-                            if (currentToken) {
-                                fetch(`${DB_URL}/customers/${currentLoggedPhone}/fcmToken.json`, {
-                                    method: 'PUT',
-                                    body: JSON.stringify(currentToken)
-                                });
-                            }
-                        }).catch((err) => { console.log('An error occurred while retrieving token. ', err); });
-                    } else if (permission === 'denied') {
-                        Swal.fire('تم الرفض', 'لقد قمت برفض إذن الإشعارات. لتفعيله لاحقاً، ستحتاج للذهاب إلى إعدادات التطبيق أو المتصفح.', 'warning');
-                    } else {
-                        Swal.fire('لم يتم التفعيل', 'لم تقم بإعطاء الإذن. يمكنك المحاولة مرة أخرى.', 'info');
-                    }
-                });
-            }
-        });
     }
 </script>
 
