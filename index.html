@@ -199,10 +199,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <span style="font-weight: bold; color: var(--primary);">أهلاً بك، <span id="welcome-name"></span></span>
             <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="cart.html" style="position: relative; cursor: pointer; color: var(--text-main); text-decoration: none;">
-                    <span style="font-size: 1.5em;">🛒</span>
-                    <span id="cart-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
-                </a>
+                <!-- تم نقل أيقونة السلة إلى أزرار التنقل الجديدة -->
                 <div style="position: relative; cursor: pointer;" onclick="openChatModal()">
                     <span style="font-size: 1.5em;">💬</span>
                     <span id="chat-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
@@ -237,6 +234,10 @@
             <a href="shop.html" class="nav-button">
                 <span>🛍️</span>
                 تسوق منتجاتنا
+                <a href="cart.html" style="position: relative; cursor: pointer; color: var(--text-main); text-decoration: none; margin-top: 10px; display: inline-block;">
+                    <span style="font-size: 1.5em;">🛒</span>
+                    <span id="cart-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
+                </a>
             </a>
             <a href="orders.html" class="nav-button">
                 <span>📋</span>
@@ -327,7 +328,7 @@
             </div>
             <div id="chat-body" class="chat-body"></div>
             <div class="chat-footer">
-                <button id="record-btn" onclick="toggleRecording()">🎤</button>
+                <!-- تم إزالة زر التسجيل الصوتي مؤقتاً من واجهة العميل للتبسيط -->
                 <input type="text" id="chat-input" class="input-phone chat-input" placeholder="اكتب رسالتك..." style="margin:0; padding: 12px;">
                 <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
                 <label for="chat-image-input" class="chat-attachment-label">🖼️</label>
@@ -344,7 +345,7 @@
     let shoppingCart = {}; // Changed to an object for quantity management
     let eventSource = null; // لإدارة الاتصال اللحظي
 
-window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
         checkAnnouncement();
         const loader = document.getElementById('loader');
         const loginUI = document.getElementById('login-ui');
@@ -360,11 +361,6 @@ window.addEventListener('DOMContentLoaded', () => {
             if(loader) loader.style.display = 'none';
             if(loginUI) loginUI.style.display = 'block';
         }
-
-        // Load cart from localStorage
-        const savedCart = localStorage.getItem('shoppingCart');
-        if (savedCart) { shoppingCart = JSON.parse(savedCart); }
-        updateCartCounter(); // Just update the counter, no need to render the full cart
     });
 
     // نستخدم pageshow لضمان تحديث عداد السلة حتى عند العودة للصفحة من خلال زر "الخلف" في المتصفح
@@ -495,6 +491,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             loadAndFilterOffers(user.gender || "الكل");
             updateCartCounter(); // تحديث عداد السلة بعد تسجيل الدخول
+            checkUnreadMessages(); // تحديث عداد الرسائل بعد تسجيل الدخول
             startRealtimeUpdates(phone); // بدء التحديثات اللحظية
             setupNotifications(); // طلب إذن الإشعارات من المستخدم
 
@@ -670,7 +667,28 @@ window.addEventListener('DOMContentLoaded', () => {
     function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
     function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
     function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
-    function closeChatModal() { document.getElementById('chatModal').style.display = 'none'; mediaRecorder = null; audioChunks = []; }
+    
+    async function openChatModal() {
+        document.getElementById('chatModal').style.display = 'flex';
+        await loadChatMessages();
+        
+        // Mark messages as read by customer
+        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
+        const res = await fetch(chatRef);
+        const messages = await res.json();
+        if (messages) {
+            for (const key in messages) {
+                if (messages[key].sender === 'admin' && !messages[key].readByCustomer) {
+                    await fetch(`${DB_URL}/chats/${currentLoggedPhone}/${key}/readByCustomer.json`, { method: 'PUT', body: 'true' });
+                }
+            }
+        }
+        checkUnreadMessages(); // Reset counter
+    }
+
+    function closeChatModal() {
+        document.getElementById('chatModal').style.display = 'none';
+    }
 
     async function submitRegisterRequest() {
         const name = document.getElementById('reg-name').value.trim();
@@ -777,6 +795,105 @@ window.addEventListener('DOMContentLoaded', () => {
             confirmButtonColor: '#38bdf8'
         });
     }
+
+    // --- Customer Chat Logic ---
+    async function checkUnreadMessages() {
+        if (!currentLoggedPhone) return;
+        const counter = document.getElementById('chat-counter');
+        try {
+            const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
+            const messages = await res.json();
+            if (!messages) {
+                counter.style.display = 'none';
+                return;
+            }
+            const unreadCount = Object.values(messages).filter(m => m.sender === 'admin' && !m.readByCustomer).length;
+            counter.innerText = unreadCount;
+            counter.style.display = unreadCount > 0 ? 'flex' : 'none';
+        } catch (e) {
+            console.error("Failed to check unread messages:", e);
+        }
+    }
+
+    async function loadChatMessages() {
+        if (!currentLoggedPhone) return;
+        const chatBody = document.getElementById('chat-body');
+        chatBody.innerHTML = '<p style="color:var(--text-dim); text-align:center;">جاري تحميل الرسائل...</p>';
+
+        const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
+        const messages = await res.json();
+        chatBody.innerHTML = '';
+
+        if (messages) {
+            const sortedKeys = Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp);
+            sortedKeys.forEach(key => {
+                renderMessage(messages[key]);
+            });
+        }
+    }
+
+    function renderMessage(msg) {
+        const chatBody = document.getElementById('chat-body');
+        const bubble = document.createElement('div');
+        bubble.classList.add('msg-bubble', msg.sender);
+
+        let content = '';
+        if (msg.type === 'text') {
+            content = msg.content.replace(/\n/g, '<br>');
+        } else if (msg.type === 'image') {
+            content = `<img src="${msg.content}" alt="صورة" onclick="openImageViewer('${msg.content}')">`;
+        } else if (msg.type === 'voice') {
+            content = `<audio controls src="${msg.content}"></audio>`;
+        }
+
+        bubble.innerHTML = `
+            <div>${content}</div>
+            <div class="msg-timestamp">${new Date(msg.timestamp).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</div>
+        `;
+        chatBody.prepend(bubble);
+    }
+
+    async function sendChatMessage(type = 'text', content = null) {
+        const textInput = document.getElementById('chat-input');
+        const messageContent = content || textInput.value.trim();
+
+        if (!messageContent) return;
+
+        const message = {
+            sender: 'customer',
+            type: type,
+            content: messageContent,
+            timestamp: Date.now(),
+            readByAdmin: false
+        };
+
+        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
+        await fetch(chatRef, { method: 'POST', body: JSON.stringify(message) });
+
+        if (type === 'text') {
+            textInput.value = '';
+        }
+        loadChatMessages();
+    }
+
+    // Send on Enter
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
+
+    // Send image
+    document.getElementById('chat-image-input').onchange = () => {
+        const file = document.getElementById('chat-image-input').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => sendChatMessage('image', e.target.result);
+            reader.readAsDataURL(file);
+        }
+        document.getElementById('chat-image-input').value = '';
+    };
 </script>
 <script>
     // Settings Modal Logic
