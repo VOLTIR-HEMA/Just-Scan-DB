@@ -4,6 +4,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-database-compat.js"></script>
 
     <meta charset="UTF-8">
     <title>إدارة نظام الولاء والعروض - لوحة التحكم</title>
@@ -38,6 +39,111 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
+        /* ============================================= */
+        /* === NEW RESPONSIVE LAYOUT STYLES (GEMINI) === */
+        /* ============================================= */
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            padding: 0;
+        }
+        .sidebar {
+            width: 260px;
+            background-color: var(--card);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h2 { margin: 0; font-size: 1.4em; }
+        .sidebar-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            border-right: 4px solid transparent;
+            cursor: pointer;
+            position: relative;
+        }
+        .nav-item:hover { background-color: rgba(56, 189, 248, 0.1); color: var(--primary); }
+        .nav-item.active { background-color: rgba(56, 189, 248, 0.15); color: var(--primary); border-right-color: var(--primary); font-weight: bold; }
+        .nav-item .icon { font-size: 1.3em; margin-left: 15px; width: 24px; }
+        .nav-counter {
+            margin-right: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: var(--card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .main-header h1 { margin: 0; font-size: 1.6em; color: var(--text); }
+        .menu-toggle {
+            display: none; /* Hidden on desktop */
+            background: none; border: none; color: var(--text-main); font-size: 2em; cursor: pointer;
+        }
+        .content-area { padding: 25px; }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 998; display: none;
+        }
+        .overlay.show { display: block; }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                height: 100%;
+                transform: translateX(100%);
+                box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .menu-toggle { display: block; }
+            .main-content { width: 100%; }
+        }
+        /* ============================================= */
+        /* === END OF NEW LAYOUT STYLES              === */
+        /* ============================================= */
+
         :root { 
             --primary: #38bdf8; 
             --primary-hover: #0ea5e9;
@@ -49,16 +155,10 @@
             --success: #22c55e;
             --danger: #ef4444;
         }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; direction: rtl; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; direction: rtl; }
         .container { max-width: 1000px; margin: auto; }
         h1, h2 { color: var(--primary); text-align: center; }
-        
-        /* أزرار التحكم العلوية للموبايل */
-        .admin-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; justify-content: center; }
-        .nav-btn { position: relative; padding: 10px 15px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .nav-btn.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
-        .nav-counter { position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; font-size: 0.75em; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--card); }
-
+        #management .section-card { display: block; } /* Gemini Fix: Ensure cards in management section are visible */
         .flex-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
         .section-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; flex: 1; min-width: 300px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: none; }
         .section-card.visible { display: block; }
@@ -142,24 +242,56 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>لوحة تحكم صيدلية جمال محمد علي 👨‍⚕️</h1>
-    <p style="text-align: center; color: var(--text-dim); margin-bottom: 20px;">إدارة: ابراهيم زهيري</p>
-
-    <div class="admin-nav">
-        <button class="nav-btn" onclick="toggleSection('register-card', this)">➕ حساب جديد</button>
-        <button class="nav-btn" onclick="toggleSection('offer-card', this)">🔥 إضافة عرض</button>
-        <button class="nav-btn" onclick="toggleSection('products-admin-card', this)">🛍️ إدارة المنتجات</button>
-        <button class="nav-btn" onclick="toggleSection('broadcast-card', this)">🚀 إشعار للجميع</button>
-        <button class="nav-btn" onclick="toggleSection('announcement-card', this)">💬 الرسالة الافتتاحية للعميل</button>
-        <button class="nav-btn" onclick="toggleSection('requests-card', this)">⏳ الحسابات المعلقة <span id="requests-counter" class="nav-counter" style="display: none;"></span></button>
-        <button class="nav-btn" onclick="toggleSection('cart-orders-card', this)">🛒 طلبات المتجر <span id="cart-orders-counter" class="nav-counter" style="display: none;"></span></button>
-        <button class="nav-btn" onclick="toggleSection('offers-list-card', this)">📢 العروض المنشورة <span id="offers-counter" class="nav-counter" style="display: none;"></span></button>
-        <button class="nav-btn" onclick="toggleSection('chats-list-card', this)">💬 المحادثات <span id="chats-counter" class="nav-counter" style="display: none;"></span></button>
-        <button class="nav-btn" onclick="toggleSection('orders-card', this)">📥 طلبات الأدوية <span id="orders-counter" class="nav-counter" style="display: none;"></span></button>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>لوحة التحكم</h2>
+        <p style="color: var(--text-dim); font-size: 0.9em; margin-top: 5px;">صيدلية جمال محمد علي</p>
     </div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+        <a class="nav-item active" onclick="showSection('dashboard', this)"><span class="icon">📊</span> الرئيسية</a>
+        <a class="nav-item" onclick="showSection('customers', this)"><span class="icon">👥</span> العملاء</a>
+        <a class="nav-item" onclick="showSection('requests-card', this)"><span class="icon">⏳</span> طلبات التسجيل <span id="requests-counter" class="nav-counter" style="display: none;"></span></a>
+        <a class="nav-item" onclick="showSection('orders-card', this)"><span class="icon">📥</span> طلبات الأدوية <span id="orders-counter" class="nav-counter" style="display: none;"></span></a>
+        <a class="nav-item" onclick="showSection('cart-orders-card', this)"><span class="icon">🛒</span> طلبات المتجر <span id="cart-orders-counter" class="nav-counter" style="display: none;"></span></a>
+        <a class="nav-item" onclick="showSection('chats-list-card', this)"><span class="icon">💬</span> المحادثات <span id="chats-counter" class="nav-counter" style="display: none;"></span></a>
+        <a class="nav-item" onclick="showSection('products-admin-card', this)"><span class="icon">🛍️</span> إدارة المنتجات</a>
+        <a class="nav-item" onclick="showSection('offers-list-card', this)"><span class="icon">📢</span> العروض المنشورة <span id="offers-counter" class="nav-counter" style="display: none;"></span></a>
+        <a class="nav-item" onclick="showSection('management', this)"><span class="icon">⚙️</span> الإدارة العامة</a>
+    </nav>
+</div>
 
-    <div class="flex-grid">
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="main-content">
+    <header class="main-header">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h1 id="page-title">الرئيسية</h1>
+        <div>
+            <!-- يمكن وضع أيقونات إضافية هنا مثل الإشعارات أو حساب الأدمن -->
+        </div>
+    </header>
+
+    <main class="content-area">
+        <section id="dashboard" class="page-section active">
+            <h2 style="text-align: right;">👋 أهلاً بك، إدارة: ابراهيم زهيري</h2>
+            <p style="color: var(--text-dim); text-align: right; margin-bottom: 25px;">هذه هي لوحة التحكم الرئيسية الخاصة بك.</p>
+            <!-- يمكن إضافة إحصائيات سريعة هنا -->
+        </section>
+
+        <section id="customers" class="page-section">
+            <h2>👥 قائمة العملاء الحاليين وإدارة البيانات</h2>
+            <div class="form-group" style="max-width: 400px; margin: 0 auto 20px auto;">
+                <input type="text" id="search-input" class="form-control" placeholder="🔍 ابحث برقم الموبايل..." oninput="filterCustomers()">
+            </div>
+            
+            <div id="customers-list">
+                <p style="text-align: center; color: var(--text-dim);">جاري تحميل قائمة العملاء...</p>
+            </div>
+        </section>
+
+        <section id="management" class="page-section">
+            <h2>⚙️ الإدارة العامة والمهام السريعة</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
         <div id="register-card" class="section-card">
             <h2>➕ تسجيل عميل جديد</h2>
             <div class="form-group">
@@ -227,84 +359,78 @@
             </div>
             <button class="btn" style="background: #f59e0b;" onclick="sendBroadcastNotification()">🚀 إرسال الإشعار للجميع الآن</button>
         </div>
+            </div>
+        </section>
 
-        <div id="products-admin-card" class="section-card">
+        <section id="products-admin-card" class="page-section">
             <h2>🛍️ إدارة منتجات المتجر</h2>
-            <div id="product-form-container" class="modal-section">
-                <h3 id="product-form-title" style="color: var(--primary); font-size: 1.1em;">إضافة منتج جديد</h3>
-                <input type="hidden" id="editing-product-id">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                <div id="product-form-container" class="section-card" style="display: block;">
+                    <h3 id="product-form-title" style="color: var(--primary); font-size: 1.1em; margin-top: 0;">إضافة منتج جديد</h3>
+                    <input type="hidden" id="editing-product-id">
 
-                <div class="form-group">
-                    <label>اسم المنتج</label>
-                    <input type="text" id="product-name" class="form-control" placeholder="مثال: كريم نيفيا للترطيب">
+                    <div class="form-group">
+                        <label>اسم المنتج</label>
+                        <input type="text" id="product-name" class="form-control" placeholder="مثال: كريم نيفيا للترطيب">
+                    </div>
+                    <div class="form-group">
+                        <label>سعر المنتج (بالجنيه)</label>
+                        <input type="number" id="product-price" class="form-control" placeholder="اختياري، مثال: 75">
+                    </div>
+                    <div class="form-group">
+                        <label>وصف قصير للمنتج</label>
+                        <input type="text" id="product-desc" class="form-control" placeholder="مثال: حجم 150 مل، مناسب لجميع أنواع البشرة">
+                    </div>
+                    <div class="form-group">
+                        <label>صورة المنتج</label>
+                        <input type="file" id="product-image" class="form-control" accept="image/*" onchange="document.getElementById('current-product-img-display').style.display = 'none';">
+                        <div id="current-product-img-display" style="margin-top: 10px;"></div>
+                    </div>
+                    <button id="product-submit-btn" class="btn" onclick="addProduct()">➕ إضافة المنتج للمتجر</button>
                 </div>
-                <div class="form-group">
-                    <label>سعر المنتج (بالجنيه)</label>
-                    <input type="number" id="product-price" class="form-control" placeholder="اختياري، مثال: 75">
+                <div class="section-card" style="display: block;">
+                    <h3 style="color: var(--primary); font-size: 1.1em; margin-top: 0;">المنتجات الحالية في المتجر</h3>
+                    <input type="text" id="product-search-input" class="form-control" placeholder="🔍 ابحث عن منتج بالاسم..." oninput="filterAdminProducts()" style="margin-bottom: 15px;">
+                    <div id="admin-products-list"></div>
                 </div>
-                <div class="form-group">
-                    <label>وصف قصير للمنتج</label>
-                    <input type="text" id="product-desc" class="form-control" placeholder="مثال: حجم 150 مل، مناسب لجميع أنواع البشرة">
-                </div>
-                <div class="form-group">
-                    <label>صورة المنتج</label>
-                    <input type="file" id="product-image" class="form-control" accept="image/*" onchange="document.getElementById('current-product-img-display').style.display = 'none';">
-                    <div id="current-product-img-display" style="margin-top: 10px;"></div>
-                </div>
-                <button id="product-submit-btn" class="btn" onclick="addProduct()">➕ إضافة المنتج للمتجر</button>
             </div>
-            <div class="modal-section">
-                <h3 style="color: var(--primary); font-size: 1.1em;">المنتجات الحالية في المتجر</h3>
-                <input type="text" id="product-search-input" class="form-control" placeholder="🔍 ابحث عن منتج بالاسم..." oninput="filterAdminProducts()" style="margin-bottom: 15px;">
-                <div id="admin-products-list"></div>
-            </div>
-        </div>
-    </div> ```
+        </section>
 
-    
-    <div id="requests-card" class="section-card" style="margin-bottom: 25px;">
+    <section id="requests-card" class="page-section">
         <h2 style="color: #fbbf24;">⏳ طلبات إنشاء الحسابات المعلقة (تحتاج موافقة)</h2>
         <div id="admin-requests-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات تسجيل معلقة حالياً.</p>
         </div>
-    </div>
+    </section>
     
-    <div id="offers-list-card" class="section-card" style="margin-bottom: 25px;">
+    <section id="offers-list-card" class="page-section">
         <h2>📢 إدارة العروض المنشورة حالياً</h2>
         <div id="admin-offers-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <p style="text-align: center; color: var(--text-dim);">جاري تحميل العروض الحالية...</p>
         </div>
-    </div>
+    </section>
 
-    <div id="chats-list-card" class="section-card" style="margin-bottom: 25px; padding: 0;">
+    <section id="chats-list-card" class="page-section" style="padding: 0;">
         <h2 style="color: #38bdf8; padding: 20px 20px 0 20px;">💬 مركز المحادثات</h2>
         <div id="admin-chats-list" style="display: flex; flex-direction: column; background: var(--card); border-radius: 12px;">
             <p style="text-align: center; color: var(--text-dim); padding: 20px;">لا توجد محادثات حالياً.</p>
         </div>
-    </div>
+    </section>
 
-    <div id="orders-card" class="section-card" style="margin-bottom: 25px;">
+    <section id="orders-card" class="page-section">
         <h2 style="color: #a855f7;">📥 طلبات الأدوية المستلمة من العملاء</h2>
         <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات واردة حالياً.</p>
         </div>
-    </div>
+    </section>
 
-    <div id="cart-orders-card" class="section-card" style="margin-bottom: 25px;">
+    <section id="cart-orders-card" class="page-section">
         <h2 style="color: #22c55e;">🛒 طلبات المتجر الجديدة</h2>
         <div id="admin-cart-orders-list" style="display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <p style="text-align: center; color: var(--text-dim);">لا توجد طلبات من المتجر حالياً.</p>
         </div>
-    </div>
-
-    <h2>👥 قائمة العملاء الحاليين وإدارة البيانات</h2>
-    <div class="form-group" style="max-width: 400px; margin: 0 auto 20px auto;">
-        <input type="text" id="search-input" class="form-control" placeholder="🔍 ابحث برقم الموبايل..." oninput="filterCustomers()">
-    </div>
-    
-    <div id="customers-list">
-        <p style="text-align: center; color: var(--text-dim);">جاري تحميل قائمة العملاء...</p>
-    </div>
+    </section>
+    </main>
 </div>
 
 <div id="pointsModal">
@@ -399,12 +525,25 @@
     let isTyping = false;
     let allCustomers = {};
 
-    // دالة إخفاء وإظهار الأقسام لتقليل الازدحام على الموبايل
-    function toggleSection(id, btn) {
-        const card = document.getElementById(id);
-        card.classList.toggle('visible');
-        btn.classList.toggle('active');
+    // --- NEW LAYOUT FUNCTIONS (GEMINI) ---
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('show');
     }
+
+    function showSection(sectionId, navLink) {
+        // Hide all sections
+        document.querySelectorAll('.page-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // Show the target section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+    }
+    // --- END OF NEW LAYOUT FUNCTIONS ---
 
     async function loadCustomers() {
         try {
@@ -590,13 +729,20 @@
             // 2. حساب النقاط المخصومة من استخدام الخصم
             if (redeemValue !== "") {
                 const redeemedCash = parseInt(redeemValue) || 0;
-                if (redeemedCash > 0) {
-                    const pointsToRedeem = redeemedCash * 20; // 1 جنيه = 20 نقطة
+                const pointsToRedeem = redeemedCash * 20; // 1 جنيه = 20 نقطة
+
+                // Gemini Suggestion: Capped Points Redemption Logic
+                if (currentCustomer.points >= 500 && redeemedCash === 25) {
+                    // If user has reached the cap and admin redeems the full 25 EGP
+                    payload.points = 0; // Reset points to zero
+                    pointsChange = 0; // No further change needed
+                    historyEntry = { date: Date.now(), points: 500, type: 'used', reason: `استخدام خصم الهدف (25 ج.م) وتصفير النقاط` };
+                } else if (redeemedCash > 0) {
+                    // Normal redemption
                     pointsChange -= pointsToRedeem;
                     historyEntry = { date: Date.now(), points: pointsToRedeem, type: 'used', reason: `استبدال خصم بقيمة ${redeemedCash} ج.م` };
                 }
             }
-
             // 3. تحديث النقاط النهائية وإضافة سجل العملية
             if (pointsChange !== 0) {
                 payload.points = Math.max(0, payload.points + pointsChange);
@@ -930,38 +1076,8 @@
         } catch(e) { console.error(e); }
     }
 
-    // الميكانيزم المطور: الفحص الفوري التلقائي (تجنب تعليق الـ Fetch)
-    function startRealtimeUpdates() {
-        // فحص مبدئي فوري لكل الدوال
-        loadCustomers();
-        loadAdminOffers();
-        loadAdminOrders();
-        loadPendingRequests();
-        loadAdminProducts();
-        loadCartOrders();
-        loadAdminChats();
-        setupAdminNotifications(); // طلب إذن الإشعارات من الأدمن
-        loadCurrentAnnouncement();
-
-        // فحص دوري ذكي ومتقارب جداً (كل ثانيتين) لتحديث الشاشة والإشعارات بدون تهنيج
-       setInterval(async () => {
-            if (typeof isTyping !== 'undefined' && isTyping) {
-                return; // إذا كان الأدمن يكتب، لا تقم بالتحديث لتجنب فقدان النص
-            }
-
-            // التحديث الذكي سيحافظ على حالة العناصر المفتوحة دون الحاجة لتمريرها
-            loadAdminOrders();
-            loadCartOrders();
-            loadPendingRequests();
-
-            // تحديث المحادثات فقط إذا كان القسم الخاص بها مرئياً
-            const chatsCard = document.getElementById('chats-list-card');
-            if (chatsCard && chatsCard.classList.contains('visible')) { loadAdminChats(); }
-        }, 2000);
-    }
-
     // --- Admin Push Notification Logic ---
-    function setupAdminNotifications() {
+     function setupAdminNotifications() {
         const firebaseConfig = {
             apiKey: "AIzaSyB4hRnaIq3Dn4o8cqgTVk3vg_XXmwyqOlA",
             authDomain: "my-assistant-7c330.firebaseapp.com",
@@ -973,33 +1089,33 @@
             measurementId: "G-ZPM602TWDY"
         };
 
-        if (firebase.apps.length === 0) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const messaging = firebase.messaging();
+        // التأكد من أن مكتبة Firebase Messaging موجودة قبل استخدامها
+        if (typeof firebase !== 'undefined' && typeof firebase.messaging !== 'undefined') {
+            if (firebase.apps.length === 0) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const messaging = firebase.messaging();
 
-        // طلب الإذن مرة واحدة فقط
-        if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
-            Notification.requestPermission().then((permission) => {
-                if (permission === 'granted') {
-                    console.log('Admin notification permission granted.');
-                    messaging.getToken({ vapidKey: 'BNZCfJEpZ9B8NJIzc-lI2WSYiHRzNTFvmcopfZL2O7kZV_xMoQPNlARnB9f-Y14qX_RzcRY9CL7k2XHeaMG-Z2U' }) 
-                    .then((currentToken) => {
-                        if (currentToken) {
-                            // Save the admin token to a specific location
-                            const tokenRef = `${DB_URL}/admin/fcmTokens/${currentToken}.json`;
-                            fetch(tokenRef, { method: 'PUT', body: 'true' });
-                        } else {
-                            console.log('No registration token available for admin.');
-                        }
-                    }).catch((err) => { console.log('An error occurred while retrieving admin token. ', err); });
-                }
-            });
+            // طلب الإذن مرة واحدة فقط
+            if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === 'granted') {
+                        console.log('Admin notification permission granted.');
+                        messaging.getToken({ vapidKey: 'BNZCfJEpZ9B8NJIzc-lI2WSYiHRzNTFvmcopfZL2O7kZV_xMoQPNlARnB9f-Y14qX_RzcRY9CL7k2XHeaMG-Z2U' }) 
+                        .then((currentToken) => {
+                            if (currentToken) {
+                                // Save the admin token to a specific location
+                                const tokenRef = `${DB_URL}/admin/fcmTokens/${currentToken}.json`;
+                                fetch(tokenRef, { method: 'PUT', body: 'true' });
+                            } else {
+                                console.log('No registration token available for admin.');
+                            }
+                        }).catch((err) => { console.log('An error occurred while retrieving admin token. ', err); });
+                    }
+                });
+            }
         }
     }
-
-    // تشغيل الميكانيزم فور تحميل الصفحة
-    window.onload = startRealtimeUpdates;
 
     // دالة حذف الطلب فوراً
     async function deleteOrder(id) {
@@ -1322,7 +1438,7 @@
         try {
             const res = await fetch(`${DB_URL}/products.json`);
             const products = await res.json();
-            container.innerHTML = '<h3 style="color: var(--primary); font-size: 1.1em;">المنتجات الحالية في المتجر</h3>';
+            container.innerHTML = '';
             if (!products) {
                 container.innerHTML += '<p>لا توجد منتجات حالياً.</p>';
                 return;
@@ -1474,6 +1590,7 @@
                 const chatRef = `${DB_URL}/chats/${currentChatPhone}.json`;
                 await fetch(chatRef, { method: 'DELETE' });
                 document.getElementById('chat-body').innerHTML = '<p style="color:var(--text-dim); text-align:center;">تم حذف المحادثة بنجاح.</p>';
+                closeChatModal(); // Gemini Final Review Fix: Close modal and refresh list
                 Swal.fire('تم الحذف', 'تم حذف سجل المحادثة بالكامل.', 'success');
             } catch (e) {
                 Swal.fire('خطأ', 'فشل حذف المحادثة: ' + e.message, 'error');
@@ -1551,8 +1668,96 @@
             console.error("Error loading points history for admin:", e);
         }
     }
+
+    // --- Gemini Fix: True Real-time Listeners ---
+    function initializeApp() {
+        // تهيئة أولية للبيانات عند تحميل الصفحة
+        loadCustomers();
+        loadAdminOffers();
+        loadAdminProducts();
+        loadCurrentAnnouncement();
+        setupAdminNotifications();
+
+        // بدء المستمعات اللحظية
+        startRealtimeListeners();
+    }
+
+    function startRealtimeListeners() {
+        if (typeof firebase === 'undefined' || typeof firebase.database === 'undefined') {
+            console.error("Firebase Database SDK not loaded!");
+            return;
+        }
+        const db = firebase.database();
+
+        // 1. الاستماع لطلبات الأدوية
+        const ordersRef = db.ref('medicine_orders');
+        ordersRef.on('value', (snapshot) => {
+            console.log("Real-time update: Medicine orders changed.");
+            loadAdminOrders();
+        });
+
+        // 2. الاستماع لطلبات المتجر
+        const cartOrdersRef = db.ref('cart_orders');
+        cartOrdersRef.on('value', (snapshot) => {
+            console.log("Real-time update: Cart orders changed.");
+            loadCartOrders();
+        });
+
+        // 3. الاستماع لطلبات التسجيل
+        const requestsRef = db.ref('pending_requests');
+        requestsRef.on('value', (snapshot) => {
+            console.log("Real-time update: Pending requests changed.");
+            loadPendingRequests();
+        });
+
+        // 4. الاستماع للمحادثات
+        const chatsRef = db.ref('chats');
+        chatsRef.on('value', (snapshot) => {
+            console.log("Real-time update: Chats changed.");
+            const allChats = snapshot.val();
+
+            // Gemini Fix: Client-side notification logic
+            if (allChats) {
+                for (const phone in allChats) {
+                    const messages = allChats[phone];
+                    const lastMessageKey = Object.keys(messages).sort((a, b) => messages[b].timestamp - messages[a].timestamp)[0];
+                    const lastMessage = messages[lastMessageKey];
+                    // Check if the last message is from a customer and hasn't been seen by the admin yet
+                    if (lastMessage.sender === 'customer' && !lastMessage.readByAdmin && (Date.now() - lastMessage.timestamp < 5000)) { // Check for recent messages
+                        showBrowserNotification(`💬 رسالة جديدة من ${allCustomers[phone]?.name || 'عميل'}`, lastMessage.content);
+                        break; // Show one notification at a time
+                    }
+                }
+            }
+
+            const chatsSection = document.getElementById('chats-list-card');
+            if ((chatsSection && chatsSection.classList.contains('active')) || document.getElementById('chatModal').style.display === 'flex') {
+                loadAdminChats();
+            }
+        });
+    }
+
+    // تشغيل التطبيق فور تحميل الصفحة
+    window.onload = initializeApp;
 </script>
     <div id="customImageViewer" class="image-viewer-modal">
+
+<script>
+    // Gemini Fix: Function to show browser notifications
+    function showBrowserNotification(title, body) {
+        if (!("Notification" in window)) {
+            console.log("This browser does not support desktop notification");
+        } else if (Notification.permission === "granted") {
+            new Notification(title, { body: body, icon: 'https://i.imgur.com/rgy8E8S.png' });
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav');
+            audio.play().catch(e => console.log("Audio play blocked"));
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === "granted") { new Notification(title, { body: body, icon: 'https://i.imgur.com/rgy8E8S.png' }); }
+            });
+        }
+    }
+</script>
     <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
     <img id="viewerTargetImage" class="image-viewer-content" src="" alt="الروشتة">
 </div>
