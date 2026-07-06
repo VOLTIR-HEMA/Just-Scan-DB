@@ -273,7 +273,7 @@
             <div class="card-top">
                 <div class="card-brand">صيدلية جمال محمد علي</div>
                 <div style="display: flex; gap: 10px;">
-                    <div class="card-chip-btn" onclick="shareLoyaltyCard()">مشاركة 📤</div>
+                    <div class="card-chip-btn" onclick="shareLoyaltyCard()">مشاركة</div>
                     <div class="card-chip-btn" onclick="openPointsDetailModal()">السجل</div>
                 </div>
             </div>
@@ -319,9 +319,9 @@
         <div class="dropdown-container">
             <button class="dropdown-btn" onclick="toggleMainMenu()">☰ الخدمات الرئيسية</button>
             <div id="main-menu-dropdown" class="dropdown-content">
-                <a href="shop.html">🛍️ المتجر</a>
-                <a href="orders.html">📋 طلباتي</a>
-                <a href="cart.html">🛒 سلة المشتريات <span id="cart-counter" class="chat-counter" style="position: static; transform: none;">0</span></a>
+                <a href="./shop.html">🛍️ المتجر</a>
+                <a href="./orders.html">📋 طلباتي</a>
+                <a href="./cart.html">🛒 سلة المشتريات <span id="cart-counter" class="chat-counter" style="position: static; transform: none;">0</span></a>
             </div>
         </div>
         <h2 style="font-size: 1.2em; border-right: 3px solid var(--primary); padding-right: 8px; color: var(--primary); margin-bottom: 15px;">🎁 العروض والخصومات</h2>
@@ -1177,10 +1177,13 @@
 <script>
     // Gemini Suggestion: Share Loyalty Card Logic
     async function shareLoyaltyCard() {
+        // ! هام: قم باستبدال هذا الرابط بالرابط المباشر لملف APK الخاص بك على GitHub
+        const apkUrl = 'https://github.com/VOLTIR-HEMA/Just-Scan-DB/releases/download/app/pharmacy-1.2.apk';
+
         const shareData = {
             title: 'برنامج ولاء صيدلية جمال محمد علي',
-            text: 'انضم الآن لبرنامج ولاء صيدلية جمال محمد علي واحصل على خصومات وعروض حصرية!',
-            url: window.location.href // Shares the URL of the current page
+            text: `حمل تطبيق صيدلية جمال محمد علي الآن واحصل على خصومات وعروض حصرية!`,
+            url: apkUrl // استخدام رابط التطبيق مباشرة
         };
 
         try {
