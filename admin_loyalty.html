@@ -1522,7 +1522,7 @@
                 item.innerHTML = `
                     <button class="order-accordion-header">
                         <div style="text-align: right;">
-                            <b>🛒 طلب من: ${customerName}</b>
+                            <b>🛒 طلب من: ${customerName} (${o.phone})</b>
                             <span style="color:var(--text-dim); font-size:0.85em; display: block; margin-top: 4px;">
                                 📅 ${new Date(o.date).toLocaleString('ar-EG')} | الإجمالي: <b style="color: var(--success);">${o.totalPrice} ج.م</b>
                             </span>
@@ -1532,9 +1532,10 @@
                     <div class="order-accordion-content">
                         <div class="order-accordion-content-inner">
                             <h4 style="margin: 0 0 10px 0; color: var(--primary);">المنتجات المطلوبة:</h4>
-                            ${itemsHtml}
+                            <div style="display: flex; flex-direction: column; gap: 5px;">${itemsHtml}</div>
                             <div style="display:flex; gap:10px; margin-top:15px;">
-                                <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="updateCartOrderStatus('${id}', 'تم التجهيز')">✅ تم التجهيز</button>
+                                <button class="mini-btn" style="background:#22c55e; color:#000;" onclick="archiveAndCompleteOrder('${id}')">✅ تم التجهيز والأرشفة</button>
+                                <button class="mini-btn" style="background:#f97316; color:#fff;" onclick="updateCartOrderStatus('${id}', 'جاري التوصيل')">🚚 جاري التوصيل</button>
                                 <button class="mini-btn btn-danger" onclick="deleteCartOrder('${id}')">🗑️ حذف الطلب</button>
                             </div>
                         </div>
