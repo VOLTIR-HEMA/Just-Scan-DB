@@ -147,8 +147,14 @@
         }
 
         /* Gemini Final Fix: Reverted to the original, simple, and corrected progress bar design */
-        .progress-bar-container { background-color: var(--border); border-radius: 30px; height: 12px; overflow: hidden; margin-top: 15px; }
-        .progress-bar { background-color: var(--gold); height: 100%; width: 0%; border-radius: 30px; transition: width 0.5s ease-in-out; }
+        .progress-bar-container {
+            background-color: var(--border); border-radius: 30px; overflow: hidden; margin-top: 15px;
+            position: relative; height: 24px; /* Gemini: Increased height for text */
+        }
+        .progress-bar {
+            background-color: var(--gold); height: 100%; width: 0%; border-radius: 30px; transition: width 0.5s ease-in-out;
+            display: flex; align-items: center; justify-content: center; color: #0f172a; font-weight: bold; font-size: 0.8em;
+        }
         .progress-labels { display: flex; justify-content: space-around; margin-top: 8px; }
         .progress-label { font-size: 0.8em; color: var(--text-dim); transition: color 0.5s ease; }
         .progress-label.active { color: var(--gold); font-weight: bold; }
@@ -273,7 +279,7 @@
             <div class="card-top">
                 <div class="card-brand">صيدلية جمال محمد علي</div>
                 <div style="display: flex; gap: 10px;">
-                    <div class="card-chip-btn" onclick="shareLoyaltyCard()">مشاركة</div>
+                    <div class="card-chip-btn" onclick="shareLoyaltyCard()">مشاركة 📤</div>
                     <div class="card-chip-btn" onclick="openPointsDetailModal()">السجل</div>
                 </div>
             </div>
@@ -290,7 +296,9 @@
             </div>
             <!-- Gemini Final Fix: Reverted to simple progress bar -->
             <div class="progress-bar-container">
-                <div id="points-progress-bar" class="progress-bar"></div>
+                <div id="points-progress-bar" class="progress-bar">
+                    <!-- Gemini: Text will be added via JS -->
+                </div>
             </div>
             <div class="progress-labels" id="progress-labels">
                 <div class="progress-label">5ج</div><div class="progress-label">10ج</div><div class="progress-label">15ج</div><div class="progress-label">20ج</div><div class="progress-label">25ج</div>
@@ -529,48 +537,12 @@
             localStorage.setItem('customer_pass', password);
             currentLoggedPhone = phone;
             currentUserData = user; // Store user data
-
-            const pts = user.points || 0;
-            const cash = Math.floor(pts / 20); // 100 نقطة = 5 جنيه, إذن 20 نقطة = 1 جنيه
-
-            document.getElementById('ui-holder-name').innerText = user.name || "---";
-            document.getElementById('welcome-name').innerText = user.name.split(' ')[0] || "عميلنا";
-            document.getElementById('ui-holder-phone').innerText = phone;
-            document.getElementById('ui-points-val').innerText = pts;
-            document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cash} ج.م`;
-            
             if(loader) loader.style.display = 'none';
             document.getElementById('login-ui').style.display = 'none';
             document.getElementById('portal-ui').style.display = 'block';
-            // فحص وإظهار الرسالة الخاصة أو العرض الموجه لهذا المستخدم فقط من خلال ديالوج منبثق
-            if (user.privateMessage || user.privateOffer) {
-                let dialogHtml = '';
-                
-                if (user.privateMessage) {
-                    dialogHtml += `<div style="background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: right;">
-                        <b style="color: #38bdf8; display: block; margin-bottom: 5px;">📬 رسالة خاصة لك:</b>
-                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateMessage}</p>
-                    </div>`;
-                }
-                
-                if (user.privateOffer) {
-                    dialogHtml += `<div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; padding: 12px; border-radius: 8px; text-align: right;">
-                        <b style="color: #22c55e; display: block; margin-bottom: 5px;">🎁 عرض حصري لك:</b>
-                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateOffer}</p>
-                    </div>`;
-                }
 
-                Swal.fire({
-                    title: `أهلاً بك يا ${user.name || 'عميلنا العزيز'}`,
-                    html: dialogHtml,
-                    icon: 'info',
-                    confirmButtonText: 'دخول الحساب',
-                    confirmButtonColor: '#38bdf8',
-                    background: '#1e293b',
-                    color: '#f1f5f9'
-                });
-            }
-
+            // Gemini Final Fix: Call updateUI immediately on login to render everything correctly from the start.
+            updateUI(user); 
             loadAndFilterOffers(user.gender || "الكل");
             updateCartCounter(); // تحديث عداد السلة بعد تسجيل الدخول
             checkUnreadMessages(); // تحديث عداد الرسائل بعد تسجيل الدخول
@@ -663,30 +635,39 @@
         const progressText = document.getElementById('progress-text');
 
         if (points >= cap) {
-            // Gemini Final Review Fix: Correctly calculate points to next major reward
-            const pointsToNextReward = 0;
-            document.getElementById('dash-next-reward').innerText = pointsToNextReward;
-
             cashValue = Math.floor(cap * cashPerPoint); // Cap the cash value at 25 EGP
             progressPercent = 100;
             progressText.innerText = "🎉 تهانينا! لديك خصم بقيمة 25 ج.م جاهز للاستخدام.";
             progressText.style.color = 'var(--success)';
+            
+            // Gemini: Show a popup notification every time for users with 500 points
+            const lastShown = sessionStorage.getItem('pointsCapNotif');
+            if (!lastShown) {
+                Swal.fire({
+                    title: '🎉 تهانينا! لقد وصلت للحد الأقصى!',
+                    text: 'لديك 500 نقطة جاهزة للاستخدام كخصم بقيمة 25 ج.م. تفضل بزيارة الصيدلية للاستفادة من خصمك!',
+                    icon: 'success',
+                    confirmButtonText: 'رائع!',
+                });
+                sessionStorage.setItem('pointsCapNotif', 'true'); // Show only once per session
+            }
         } else {
             progressText.innerText = `اجمع ${cap} نقطة للحصول على خصم 25 ج.م!`;
             progressText.style.color = 'var(--text-dim)';
-            // Gemini Final Review Fix: Correctly calculate points to next major reward
-            const pointsToNextReward = Math.max(0, 500 - points);
-            document.getElementById('dash-next-reward').innerText = pointsToNextReward;
-
         }
 
+        // Gemini Fix: Correctly calculate and display points to the next reward
+        const pointsToNextReward = Math.max(0, cap - points);
+        document.getElementById('dash-next-reward').innerText = pointsToNextReward;
         document.getElementById('ui-points-val').innerText = displayPoints;
         document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح: ${cashValue} ج.م`;
         document.getElementById('ui-holder-name').innerText = userData.name || "---";
         document.getElementById('welcome-name').innerText = (userData.name || "عميلنا").split(' ')[0];
         
         // Gemini Final Fix: Correctly update the simple progress bar and its labels
-        document.getElementById('points-progress-bar').style.width = `${progressPercent}%`;
+        const progressBar = document.getElementById('points-progress-bar');
+        progressBar.style.width = `${progressPercent}%`;
+        progressBar.innerText = `${displayPoints} / ${cap}`; // Gemini: Add text inside the progress bar
         
         const labels = document.querySelectorAll('#progress-labels .progress-label');
         const pointsPerLabel = 100;
