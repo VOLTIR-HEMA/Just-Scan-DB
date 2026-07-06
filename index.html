@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.2.0/firebase-messaging-compat.js"></script>
+
+    <title>بوابة عملاء صيدلية جمال محمد علي</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* ستايل عارض الصور الداخلي الاحترافي */
+        .image-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-viewer-content {
+            max-width: 90%;
+            max-height: 85%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .image-viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        :root {
+            --primary: #38bdf8;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --gold: #fbbf24;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* --- New Cart Styles --- */
+        .cart-item { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; }
+        .cart-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .cart-item-details { flex: 1; }
+        .cart-item-details p { margin: 0; }
+        .cart-item-name { font-weight: bold; color: var(--text-main); }
+        .cart-item-price { font-size: 0.9em; color: var(--success); }
+        .quantity-control { display: flex; align-items: center; gap: 10px; }
+        .quantity-btn { background: #334155; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
+
+        /* Gemini Suggestion: New Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .stat-card { background: var(--card-bg); border-radius: 12px; padding: 15px; text-align: center; border: 1px solid var(--border); }
+        .stat-card .stat-value { font-size: 1.8em; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
+        .stat-card .stat-label { font-size: 0.8em; color: var(--text-dim); }
+
+        /* Gemini Suggestion: Dropdown Menu Styles */
+        .dropdown-container { position: relative; margin-bottom: 25px; }
+        .dropdown-btn {
+            width: 100%; padding: 15px; background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--primary); font-weight: bold; font-size: 1.1em;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .dropdown-content {
+            display: none; position: absolute; background-color: var(--card-bg);
+            width: 100%; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1; border: 1px solid var(--border); border-radius: 12px; margin-top: 5px;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: var(--text-main); padding: 12px 16px; text-decoration: none;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .dropdown-content a:last-child { border-bottom: none; }
+        .dropdown-content a:hover { background-color: #334155; }
+        .dropdown-content.show { display: block; }
+
+        .quantity-value { font-weight: bold; min-width: 20px; text-align: center; }
+        .nav-buttons-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .nav-button { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; color: var(--primary); font-size: 1.1em; font-weight: bold; text-decoration: none; transition: all 0.2s ease; }
+        .nav-button:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .nav-button span { font-size: 2em; display: block; margin-bottom: 10px; }
+        body { font-family: system-ui, sans-serif; background-color: #000; color: var(--text-main); margin: 0; padding: 0; direction: rtl; }
+        .wrapper { max-width: 500px; margin: auto; padding: 15px; }
+        
+        /* Login Screen style */
+        .login-box { background: var(--card-bg); border: 1px solid var(--border); padding: 30px 20px; border-radius: 16px; text-align: center; margin-top: 50px; }
+        .input-phone { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-dark); color: #fff; font-size: 1.2em; text-align: center; outline: none; margin-bottom: 20px; }
+        .input-phone:focus { border-color: var(--primary); }
+        
+        .btn-action { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 8px; color: var(--bg-dark); font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        .btn-secondary { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+        .btn-secondary:hover { color: var(--primary); border-color: var(--primary); }
+
+        /* ستايل نافذة إنشاء حساب جديد المنبثقة */
+        #registerModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-content h3 { margin-top: 0; color: var(--primary); text-align: center; }
+        /* Main Portal UI (Hidden before login) */
+        #portal-ui { display: none; }
+        
+        .loyalty-card { background: linear-gradient(135deg, #1e3a8a, #0f172a); border: 2px solid var(--primary); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.2); margin-bottom: 25px; }
+        .card-brand { font-size: 1.2em; font-weight: bold; color: var(--primary); margin-bottom: 15px; }
+        .card-holder { font-size: 1.4em; font-weight: bold; margin-bottom: 5px; }
+        .card-phone { font-size: 0.9em; color: var(--text-dim); }
+        .points-display { text-align: left; margin-top: 10px; }
+        .points-num { font-size: 2.2em; font-weight: bold; color: var(--gold); }
+        .points-num { font-size: 2.2em; font-weight: bold; color: var(--gold); line-height: 1; }
+        .cashback-val { font-size: 1.1em; color: var(--success); font-weight: bold; margin-top: 5px; }
+        .loyalty-card { display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease-in-out; }
+        .loyalty-card:hover { transform: translateY(-5px); }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-chip { width: 40px; height: 30px; background: #d4af37; border-radius: 4px; }
+        .card-chip-btn { width: 55px; height: 42px; background: linear-gradient(135deg, #d4af37, #a27b10); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold; color: #533f04; transition: transform 0.2s; }
+        .card-chip-btn:hover { transform: scale(1.1); }
+        .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+        .points-display { text-align: left; }
+        @media (max-width: 360px) {
+            .card-bottom {
+                flex-direction: column; align-items: flex-start; gap: 15px;
+            }
+        }
+
+        /* Gemini Final Fix: Reverted to the original, simple, and corrected progress bar design */
+        .progress-bar-container { background-color: var(--border); border-radius: 30px; height: 12px; overflow: hidden; margin-top: 15px; }
+        .progress-bar { background-color: var(--gold); height: 100%; width: 0%; border-radius: 30px; transition: width 0.5s ease-in-out; }
+        .progress-labels { display: flex; justify-content: space-around; margin-top: 8px; }
+        .progress-label { font-size: 0.8em; color: var(--text-dim); transition: color 0.5s ease; }
+        .progress-label.active { color: var(--gold); font-weight: bold; }
+        .progress-text { font-size: 0.8em; color: var(--text-dim); text-align: center; margin-top: 10px; }
+
+        @media (max-width: 360px) {
+            .card-bottom {
+                flex-direction: column; align-items: flex-start; gap: 15px;
+            }
+        }
+
+        .offer-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-right: 5px solid var(--primary); }
+        .offer-card h3 { margin: 0 0 5px 0; font-size: 1.1em; color: var(--primary); }
+        .offer-card p { margin: 0; font-size: 0.9em; color: var(--text-dim); }
+
+        /* ستايل نظام الطلبات ومتابعتها الجديد */
+        .order-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        .textarea-order { width: 100%; height: 80px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 10px; outline: none; resize: none; font-family: inherit; margin-bottom: 12px; font-size: 1em; }
+        .file-input-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .file-label { background: #334155; border: 1px solid var(--border); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.95em; color: var(--text-main); font-weight: bold; }
+        .order-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 0.95em; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-top: 8px; }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .status-warning { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Accordion Styles */
+        .accordion-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; background: var(--card-bg); overflow: hidden; }
+        .accordion-header { background: transparent; width: 100%; border: none; padding: 15px; text-align: right; color: var(--primary); font-size: 1.1em; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-header .arrow { transition: transform 0.3s; }
+        .accordion-item.active .accordion-header .arrow { transform: rotate(180deg); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding: 0 15px; }
+        
+        /* Points History Styles */
+        .history-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-icon { font-size: 1.5em; margin-left: 15px; }
+        .history-details p { margin: 0; font-weight: bold; }
+        .history-details span { font-size: 0.8em; color: var(--text-dim); }
+        .history-points { margin-right: auto; font-weight: bold; font-size: 1.1em; }
+
+        /* Light Theme */
+        body.light-theme { --bg-dark: #f1f5f9; --card-bg: #ffffff; --text-main: #0f172a; --text-dim: #475569; --border: #e2e8f0; background-color: #f8fafc; }
+        body.light-theme .input-phone { background: #e2e8f0; color: #0f172a; }
+        body.light-theme .login-box, body.light-theme .modal-content { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        body.light-theme #reg-gender { background: #e2e8f0; }
+
+        /* Chat Styles */
+        .chat-fab { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; color: var(--bg-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; z-index: 90; transition: all 0.3s ease; }
+        .chat-counter { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.7em; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--card-bg); }
+        .chat-modal-content { background: var(--bg-dark); padding: 0; border-radius: 12px; width: 95%; max-width: 600px; height: 90vh; max-height: 700px; display: flex; flex-direction: column; border: 1px solid var(--border); }
+        .chat-header { background: var(--card-bg); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .chat-body { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column-reverse; }
+        .chat-footer { background: var(--card-bg); padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+        .chat-input { flex: 1; }
+        .msg-bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; line-height: 1.5; word-wrap: break-word; }
+        .msg-bubble.customer { background: var(--primary); color: var(--bg-dark); border-bottom-right-radius: 4px; align-self: flex-end; }
+        .msg-bubble.admin { background: #334155; color: var(--text-main); border-bottom-left-radius: 4px; align-self: flex-start; }
+        .msg-bubble img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+        .msg-bubble audio { width: 100%; margin-top: 5px; }
+        .msg-timestamp { font-size: 0.7em; color: rgba(0,0,0,0.4); margin-top: 5px; text-align: left; }
+        .admin .msg-timestamp { color: var(--text-dim); }
+        #record-btn { background: var(--danger); color: white; padding: 10px; border-radius: 50%; width: 40px; height: 40px; border: none; cursor: pointer; }
+        #record-btn.recording { background: #f59e0b; }
+        .chat-attachment-label { padding: 10px; background: #475569; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
+
+        /* Gemini Fix: Make chat modal full-screen on mobile */
+        @media (max-width: 768px) {
+            #chatModal {
+                padding: 0;
+            }
+            .chat-modal-content {
+                width: 100%; height: 100%; max-width: 100%; max-height: 100%;
+                border-radius: 0; border: none;
+            }
+        }
+    </style>
+    <style>
+        /* Store and Cart Styles */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 15px 0; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; text-align: center; }
+        .product-card img { width: 100%; height: 120px; object-fit: cover; }
+        .product-info { padding: 10px; }
+        .product-info h4 { margin: 0 0 5px 0; font-size: 0.95em; color: var(--text-main); }
+        .product-price { font-weight: bold; color: var(--success); margin-bottom: 10px; } 
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div id="loader" style="text-align: center; margin-top: 100px; padding: 50px;">
+        <p style="color: var(--text-dim);">جاري التحميل...</p>
+    </div>
+    
+    <div id="login-ui" class="login-box" style="display: none;">
+        <h2 style="color: var(--primary); margin-top: 0;">مرحباً بك في صيدلية جمال محمد علي ✨</h2>
+        <p style="color: var(--text-dim); font-size: 0.95em; margin-bottom: 25px;">ادخل رقم الموبايل وكلمة المرور لمتابعة نقاطك وعروضك الحصرية بأمان</p>
+        
+        <input type="tel" id="user-phone-input" class="input-phone" placeholder="📱 رقم الموبايل (01xxxxxxxxx)">
+        <input type="password" id="user-pass-input" class="input-phone" placeholder="🔑 كلمة المرور" style="font-size: 1em; margin-bottom: 25px;">
+        
+        <button class="btn-action" onclick="customerLoginProcess()">🎯 دخول واستعراض الحساب</button>
+        <button class="btn-secondary" onclick="openRegisterModal()">✨ إنشاء حساب جديد (تقديم طلب)</button>
+    </div>
+
+    <div id="portal-ui">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span style="font-weight: bold; color: var(--primary);">أهلاً بك، <span id="welcome-name"></span></span>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <!-- تم نقل أيقونة السلة إلى أزرار التنقل الجديدة -->
+                <div style="position: relative; cursor: pointer;" onclick="openChatModal()">
+                    <span style="font-size: 1.5em;">💬</span>
+                    <span id="chat-counter" class="chat-counter" style="display: none; top: -8px; right: -8px;">0</span>
+                </div>
+                <button onclick="forceRefreshData()" style="background:none; border:none; color: var(--primary); cursor:pointer; font-size:1.5em; line-height: 1;">🔄</button>
+                <button onclick="openSettingsModal()" style="background:none; border:none; color: var(--primary); cursor:pointer; font-size:1.5em; line-height: 1;">⚙️</button>
+            </div>
+        </div>
+
+        <div class="loyalty-card">
+            <div class="card-top">
+                <div class="card-brand">صيدلية جمال محمد علي</div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="card-chip-btn" onclick="shareLoyaltyCard()">مشاركة 📤</div>
+                    <div class="card-chip-btn" onclick="openPointsDetailModal()">السجل</div>
+                </div>
+            </div>
+            <div class="card-bottom">
+                <div>
+                    <div class="card-holder" id="ui-holder-name">--- ---</div>
+                    <div class="card-phone" id="ui-holder-phone">01xxxxxxxxx</div>
+                </div>
+                <div class="points-display">
+                    <div class="points-num" id="ui-points-val">0</div>
+                    <span style="color: var(--gold); font-weight: bold;">نقطة</span>
+                    <div class="cashback-val" id="ui-cashback-val">💸 الخصم المالي: 0 ج.م</div>
+                </div>
+            </div>
+            <!-- Gemini Final Fix: Reverted to simple progress bar -->
+            <div class="progress-bar-container">
+                <div id="points-progress-bar" class="progress-bar"></div>
+            </div>
+            <div class="progress-labels" id="progress-labels">
+                <div class="progress-label">5ج</div><div class="progress-label">10ج</div><div class="progress-label">15ج</div><div class="progress-label">20ج</div><div class="progress-label">25ج</div>
+            </div>
+            <p id="progress-text" class="progress-text">اجمع 500 نقطة للحصول على خصم 25 ج.м!</p>
+        </div>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div id="dash-next-reward" class="stat-value">...</div>
+                <div class="stat-label">نقاط للخصم التالي</div>
+            </div>
+            <div class="stat-card">
+                <div id="dash-last-order" class="stat-value" style="font-size: 1.2em; color: var(--warning);">...</div>
+                <div class="stat-label">آخر طلب</div>
+            </div>
+            <div class="stat-card">
+                <div id="dash-unread-msgs" class="stat-value">0</div>
+                <div class="stat-label">رسائل غير مقروءة</div>
+            </div>
+        </div>
+
+
+        <!-- ================================================== -->
+        <!--      Gemini Suggestion: Dropdown Menu            -->
+        <!-- ================================================== -->
+        <div class="dropdown-container">
+            <button class="dropdown-btn" onclick="toggleMainMenu()">☰ الخدمات الرئيسية</button>
+            <div id="main-menu-dropdown" class="dropdown-content">
+                <a href="shop.html">🛍️ المتجر</a>
+                <a href="orders.html">📋 طلباتي</a>
+                <a href="cart.html">🛒 سلة المشتريات <span id="cart-counter" class="chat-counter" style="position: static; transform: none;">0</span></a>
+            </div>
+        </div>
+        <h2 style="font-size: 1.2em; border-right: 3px solid var(--primary); padding-right: 8px; color: var(--primary); margin-bottom: 15px;">🎁 العروض والخصومات</h2>
+        <div id="offers-container">
+            <p style="color: var(--text-dim); text-align: center;">جاري تصفية العروض المخصصة لك...</p>
+        </div>
+    </div>
+
+    <div id="registerModal">
+        <div class="modal-content">
+            <h3>📝 طلب إنشاء حساب جديد</h3>
+            <p style="color: var(--text-dim); font-size: 0.85em; text-align: center; margin-bottom: 20px;">سيتم إرسال طلبك للإدارة للمراجعة والتفعيل خلال 24 ساعة.</p>
+            
+            <input type="text" id="reg-name" class="input-phone" placeholder="👤 الاسم الثنائي" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <input type="tel" id="reg-phone" class="input-phone" placeholder="📱 رقم الموبايل" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <input type="password" id="reg-pass" class="input-phone" placeholder="🔑 اختر كلمة مرور" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            
+            <select id="reg-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
+                <option value="ذكر">الجنس: ذكر</option>
+                <option value="أنثى">الجنس: أنثى</option>
+            </select>
+            
+            <button class="btn-action" onclick="submitRegisterRequest()">🚀 تقديم الطلب الآن</button>
+            <button class="btn-secondary" style="margin-top: 10px;" onclick="closeRegisterModal()">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px;">
+        <div class="modal-content">
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>⚙️ الإعدادات</span>
+                <button onclick="closeSettingsModal()" style="background:transparent; border:none; color: var(--text-dim); font-size: 1.5em; cursor:pointer;">&times;</button>
+            </h3> 
+            
+            <h4 style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">تعديل بيانات الحساب</h4>
+            <input type="text" id="settings-name" class="input-phone" placeholder="👤 الاسم الثنائي" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <input type="password" id="settings-pass" class="input-phone" placeholder="🔑 كلمة مرور جديدة (اختياري)" style="font-size: 1em; margin-bottom: 12px; text-align: right; padding: 12px;">
+            <select id="settings-gender" class="input-phone" style="font-size: 1em; margin-bottom: 20px; text-align: right; padding: 12px; background: var(--bg-dark);">
+                <option value="ذكر">الجنس: ذكر</option>
+                <option value="أنثى">الجنس: أنثى</option>
+            </select>
+            <button class="btn-action" style="background-color: var(--success);" onclick="updateUserSettings()">💾 حفظ التعديلات</button>
+
+            <h4 style="color: var(--text-dim); font-size: 0.9em; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">إعدادات الواجهة</h4>
+            <button class="btn-secondary" onclick="toggleTheme()">🎨 تغيير الثيم (ليلي/نهاري)</button>
+            <button class="btn-secondary" style="margin-top: 10px; background-color: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #f59e0b;" onclick="requestNotificationPermissionManually()">🔔 تفعيل الإشعارات يدوياً</button>
+            <button class="btn-secondary" style="margin-top: 10px;" onclick="showPermissionsGuide()">🔧 إرشادات أذونات المتصفح</button>
+
+            <button class="btn-secondary" style="margin-top: 20px; color: #ef4444; border-color: #ef4444;" onclick="logoutCustomer()">🚪 تسجيل الخروج</button>
+        </div>
+    </div>
+
+    <div id="pointsDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px;">
+        <div class="modal-content">
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📜 تفاصيل سجل الحساب</span>
+                <button onclick="closePointsDetailModal()" style="background:transparent; border:none; color: var(--text-dim); font-size: 1.5em; cursor:pointer;">&times;</button>
+            </h3>
+            
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-around; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <div class="info-box">
+                    <h4>آخر فاتورة</h4>
+                    <p id="modal-last-purchase-val">0 ج.م</p>
+                </div>
+                <div style="width: 1px; background: var(--border);"></div>
+                <div class="info-box">
+                    <h4>النقاط المكتسبة</h4>
+                    <p class="points" id="modal-last-purchase-points">0</p>
+                </div>
+            </div>
+
+            <div id="points-history-container" style="max-height: 30vh; overflow-y: auto; padding-right: 10px;">
+                <p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">جاري تحميل سجل النقاط...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:101; align-items: center; justify-content: center; padding: 10px;">
+        <div class="chat-modal-content">
+            <div class="chat-header">
+                <h3 style="margin:0; font-size: 1.2em; color: var(--primary);">💬 محادثة مع صيدلية جمال محمد علي</h3>
+                <button onclick="closeChatModal()" style="background:transparent; border:none; color: var(--text-dim); font-size: 1.8em; cursor:pointer; line-height: 1;">&times;</button>
+            </div>
+            <div id="chat-body" class="chat-body"></div>
+            <div class="chat-footer">
+                <!-- Gemini Fix: Re-enabled voice recording button for user -->
+                <button id="record-btn" onclick="toggleRecording()">🎤</button>
+                <input type="text" id="chat-input" class="input-phone chat-input" placeholder="اكتب رسالتك..." style="margin:0; padding: 12px;">
+                <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+                <label for="chat-image-input" class="chat-attachment-label">🖼️</label>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const DB_URL = "https://my-assistant-7c330-default-rtdb.firebaseio.com/";
+    let currentLoggedPhone = null;
+    let currentUserData = null;
+    let shoppingCart = {}; // Changed to an object for quantity management
+    let mediaRecorder;
+    let audioChunks = [];
+    let eventSource = null; // لإدارة الاتصال اللحظي
+
+    window.addEventListener('DOMContentLoaded', () => {
+        checkAnnouncement();
+        const loader = document.getElementById('loader');
+        const loginUI = document.getElementById('login-ui');
+
+        const savedPhone = localStorage.getItem('customer_phone');
+        const savedPass = localStorage.getItem('customer_pass');
+        if (savedPhone && savedPass) {
+            document.getElementById('user-phone-input').value = savedPhone;
+            document.getElementById('user-pass-input').value = savedPass;
+            customerLoginProcess(true);
+        } else {
+            // لا يوجد مستخدم مسجل، أظهر شاشة الدخول
+            if(loader) loader.style.display = 'none';
+            if(loginUI) loginUI.style.display = 'block';
+        }
+    });
+
+    // نستخدم pageshow لضمان تحديث عداد السلة حتى عند العودة للصفحة من خلال زر "الخلف" في المتصفح
+    window.addEventListener('pageshow', function(event) {
+        // event.persisted تكون true إذا تم استرجاع الصفحة من الـ cache
+        if (event.persisted) {
+            if (localStorage.getItem('customer_phone')) {
+                updateCartCounter();
+            }
+        }
+    });
+
+    async function checkAnnouncement() {
+        try {
+            const res = await fetch(`${DB_URL}/announcement.json`);
+            const data = await res.json();
+            if (data && data.text) {
+                const lastSeen = localStorage.getItem('last_announcement');
+                if (lastSeen !== data.updatedAt.toString()) {
+                    Swal.fire({
+                        title: '📢 إعلان هام',
+                        text: data.text,
+                        icon: 'info',
+                        confirmButtonText: 'مفهوم',
+                        confirmButtonColor: '#38bdf8', 
+                        background: '#1e293b', 
+                        color: '#f1f5f9'
+                    }).then(() => {
+                        localStorage.setItem('last_announcement', data.updatedAt);
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("خطأ في جلب الرسالة الافتتاحية:", e);
+        }
+    }
+    
+    async function customerLoginProcess(isAuto = false) {
+        const phone = document.getElementById('user-phone-input').value.trim();
+        const password = document.getElementById('user-pass-input').value.trim();
+        const loader = document.getElementById('loader');
+        const loginUI = document.getElementById('login-ui');
+        
+        if(!phone || !password) {
+            if(!isAuto) {
+                Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'برجاء إدخال رقم الموبايل وكلمة المرور.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+            return;
+        }
+
+        const failLogin = () => {
+            localStorage.clear();
+            if(loader) loader.style.display = 'none';
+            if(loginUI) loginUI.style.display = 'block';
+        };
+
+        try {
+            const res = await fetch(`${DB_URL}/customers/${phone}.json`);
+            const user = await res.json();
+
+            if(!user) {
+                const reqRes = await fetch(`${DB_URL}/pending_requests/${phone}.json`);
+                const pendingReq = await reqRes.json();
+                
+                if(pendingReq) {
+                    if(pendingReq.status === "معلق") {
+                        return Swal.fire({ icon: 'clock', title: 'طلبك قيد المراجعة', text: '⏳ طلبك قيد المراجعة حالياً. الرجاء انتظار تفعيل الحساب من قبل الإدارة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+                    } else if(pendingReq.status === "مرفوض") {
+                        return Swal.fire({ icon: 'error', title: 'عفواً', text: '❌ نأسف، تم رفض طلب إنشاء الحساب هذا من قبل الإدارة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+                    }
+                }
+                if (!isAuto) failLogin();
+                return Swal.fire({ icon: 'info', title: 'غير مسجل', text: '❌ عذراً، هذا الرقم غير مسجل. يمكنك تقديم طلب إنشاء حساب جديد بالضغط على الزر بالأسفل.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+
+            if(user.password !== password) {
+                if (isAuto) {
+                    failLogin();
+                }
+                return Swal.fire({ icon: 'error', title: 'خطأ', text: '❌ كلمة المرور غير صحيحة! يرجى التأكد وإعادة المحاولة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+
+            localStorage.setItem('customer_phone', phone);
+            localStorage.setItem('customer_pass', password);
+            currentLoggedPhone = phone;
+            currentUserData = user; // Store user data
+
+            const pts = user.points || 0;
+            const cash = Math.floor(pts / 20); // 100 نقطة = 5 جنيه, إذن 20 نقطة = 1 جنيه
+
+            document.getElementById('ui-holder-name').innerText = user.name || "---";
+            document.getElementById('welcome-name').innerText = user.name.split(' ')[0] || "عميلنا";
+            document.getElementById('ui-holder-phone').innerText = phone;
+            document.getElementById('ui-points-val').innerText = pts;
+            document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح لك: ${cash} ج.م`;
+            
+            if(loader) loader.style.display = 'none';
+            document.getElementById('login-ui').style.display = 'none';
+            document.getElementById('portal-ui').style.display = 'block';
+            // فحص وإظهار الرسالة الخاصة أو العرض الموجه لهذا المستخدم فقط من خلال ديالوج منبثق
+            if (user.privateMessage || user.privateOffer) {
+                let dialogHtml = '';
+                
+                if (user.privateMessage) {
+                    dialogHtml += `<div style="background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: right;">
+                        <b style="color: #38bdf8; display: block; margin-bottom: 5px;">📬 رسالة خاصة لك:</b>
+                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateMessage}</p>
+                    </div>`;
+                }
+                
+                if (user.privateOffer) {
+                    dialogHtml += `<div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; padding: 12px; border-radius: 8px; text-align: right;">
+                        <b style="color: #22c55e; display: block; margin-bottom: 5px;">🎁 عرض حصري لك:</b>
+                        <p style="margin: 0; color: #f1f5f9; line-height: 1.5;">${user.privateOffer}</p>
+                    </div>`;
+                }
+
+                Swal.fire({
+                    title: `أهلاً بك يا ${user.name || 'عميلنا العزيز'}`,
+                    html: dialogHtml,
+                    icon: 'info',
+                    confirmButtonText: 'دخول الحساب',
+                    confirmButtonColor: '#38bdf8',
+                    background: '#1e293b',
+                    color: '#f1f5f9'
+                });
+            }
+
+            loadAndFilterOffers(user.gender || "الكل");
+            updateCartCounter(); // تحديث عداد السلة بعد تسجيل الدخول
+            checkUnreadMessages(); // تحديث عداد الرسائل بعد تسجيل الدخول
+            startRealtimeUpdates(phone); // بدء التحديثات اللحظية
+            setupNotifications(); // طلب إذن الإشعارات من المستخدم
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // --- Gemini Fix: True Real-time Listeners ---
+    function startRealtimeUpdates(phone) {
+        if (eventSource) {
+            eventSource.close(); // إغلاق أي اتصال قديم
+        }
+        if (typeof firebase === 'undefined' || typeof firebase.database === 'undefined') {
+            console.error("Firebase Database SDK not loaded!");
+            return;
+        }
+        const db = firebase.database();
+
+        // 1. الاستماع لبيانات العميل (النقاط، الاسم، إلخ)
+        const customerRef = db.ref(`customers/${phone}`);
+        customerRef.on('value', (snapshot) => {
+            console.log("Real-time update: Customer data changed.");
+            // Gemini Suggestion: Update dashboard with new data
+            const userData = snapshot.val();
+            updateUI(userData);
+        });
+
+        // 2. الاستماع لطلبات الأدوية الخاصة بالعميل
+        const ordersRef = db.ref('medicine_orders').orderByChild('phone').equalTo(phone);
+        ordersRef.on('value', (snapshot) => {
+            console.log("Real-time update: Medicine orders for this customer changed.");
+            if (document.querySelector('a[href="orders.html"]')) { // تأكد من أننا في الصفحة التي تعرض الطلبات
+                // يمكنك استدعاء دالة تحديث الطلبات هنا إذا كانت موجودة في هذه الصفحة
+            }
+            const orders = snapshot.val();
+            if (!orders) return;
+            const lastOrderKey = Object.keys(orders).sort((a, b) => orders[b].date - orders[a].date)[0];
+            document.getElementById('dash-last-order').innerText = orders[lastOrderKey]?.status || '...';
+        });
+
+        // Gemini Final Review Fix: Add a real-time listener for the cart counter
+        const cartRef = db.ref(`carts/${phone}`);
+        cartRef.on('value', (snapshot) => {
+            console.log("Real-time update: Cart data changed.");
+            updateCartCounter(snapshot.val());
+        });
+
+        // 3. الاستماع للمحادثات الخاصة بالعميل
+        const chatRef = db.ref(`chats/${phone}`);
+        chatRef.on('value', (snapshot) => {
+            console.log("Real-time update: Chat messages for this customer changed.");
+            const messages = snapshot.val();
+            if (messages) {
+                const lastMessageKey = Object.keys(messages).sort((a, b) => messages[b].timestamp - messages[a].timestamp)[0];
+                const lastMessage = messages[lastMessageKey];
+
+                // Check if the last message is from admin and hasn't been read
+                if (lastMessage.sender === 'admin' && !lastMessage.readByCustomer && (Date.now() - lastMessage.timestamp < 5000)) {
+                    // Play sound and show notification only if chat is closed
+                    // Gemini Suggestion: Update dashboard
+                    document.getElementById('dash-unread-msgs').innerText = (parseInt(document.getElementById('dash-unread-msgs').innerText) || 0) + 1;
+                    if (document.getElementById('chatModal').style.display !== 'flex') {
+                        showBrowserNotification("💬 رد جديد من الصيدلية", lastMessage.content);
+                    }
+                }
+            }
+
+            checkUnreadMessages(); // تحديث العداد
+            if (document.getElementById('chatModal').style.display === 'flex') { loadChatMessages(); }
+        });
+    }
+
+    function updateUI(userData) {
+        if (!userData) return;
+        currentUserData = userData; // Update global user data
+        const points = userData.points || 0;
+
+        // Gemini Suggestion: New Capped Points Logic
+        const cap = 500;
+        const cashPerPoint = 1 / 20; // 1 EGP = 20 points
+        
+        let displayPoints = points;
+        let cashValue = Math.floor(points * cashPerPoint);
+        let progressPercent = (points / cap) * 100;
+
+        const progressText = document.getElementById('progress-text');
+
+        if (points >= cap) {
+            // Gemini Final Review Fix: Correctly calculate points to next major reward
+            const pointsToNextReward = 0;
+            document.getElementById('dash-next-reward').innerText = pointsToNextReward;
+
+            cashValue = Math.floor(cap * cashPerPoint); // Cap the cash value at 25 EGP
+            progressPercent = 100;
+            progressText.innerText = "🎉 تهانينا! لديك خصم بقيمة 25 ج.م جاهز للاستخدام.";
+            progressText.style.color = 'var(--success)';
+        } else {
+            progressText.innerText = `اجمع ${cap} نقطة للحصول على خصم 25 ج.م!`;
+            progressText.style.color = 'var(--text-dim)';
+            // Gemini Final Review Fix: Correctly calculate points to next major reward
+            const pointsToNextReward = Math.max(0, 500 - points);
+            document.getElementById('dash-next-reward').innerText = pointsToNextReward;
+
+        }
+
+        document.getElementById('ui-points-val').innerText = displayPoints;
+        document.getElementById('ui-cashback-val').innerText = `💸 الخصم المالي المتاح: ${cashValue} ج.م`;
+        document.getElementById('ui-holder-name').innerText = userData.name || "---";
+        document.getElementById('welcome-name').innerText = (userData.name || "عميلنا").split(' ')[0];
+        
+        // Gemini Final Fix: Correctly update the simple progress bar and its labels
+        document.getElementById('points-progress-bar').style.width = `${progressPercent}%`;
+        
+        const labels = document.querySelectorAll('#progress-labels .progress-label');
+        const pointsPerLabel = 100;
+        
+        labels.forEach((label, index) => {
+            const pointsThreshold = (index + 1) * pointsPerLabel;
+            if (points >= pointsThreshold) { label.classList.add('active'); } 
+            else { label.classList.remove('active'); }
+        });
+    }
+
+
+    function logoutCustomer() {
+        localStorage.clear();
+        Swal.fire({
+            title: 'تم تسجيل الخروج',
+            text: 'نراك قريباً!',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        if (eventSource) eventSource.close(); // إغلاق الاتصال اللحظي عند الخروج
+        location.reload();
+    }
+
+    async function loadAndFilterOffers(customerGender) {
+        const container = document.getElementById('offers-container');
+        container.innerHTML = '';
+
+        try {
+            const res = await fetch(`${DB_URL}/offers.json`);
+            const offers = await res.json();
+
+            if(!offers) {
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">لا توجد عروض منشورة حالياً.</p>';
+                return;
+            }
+
+            let hasOffers = false;
+            Object.keys(offers).forEach(id => {
+                const offer = offers[id];
+                if(offer.target === "الكل" || offer.target === customerGender) {
+                    hasOffers = true;
+                    const card = document.createElement('div');
+                    card.className = 'offer-card';
+                    card.innerHTML = `
+                        <h3>${offer.title}</h3>
+                        <p>${offer.desc}</p>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+
+            if(!hasOffers) {
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">لا توجد عروض متوفرة لفئتك حالياً.</p>';
+            }
+        } catch(e) {
+            container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل العروض.</p>';
+        }
+    }
+
+    async function loadPointsHistory() {
+        const container = document.getElementById('points-history-container');
+        container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">جاري تحميل سجل النقاط...</p>';
+
+        try {
+            const res = await fetch(`${DB_URL}/customers/${currentLoggedPhone}/points_history.json?t=${Date.now()}`);
+            const history = await res.json();
+
+            if (!history) {
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">لا يوجد سجل لعمليات النقاط حتى الآن.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            // تحويل الكائن إلى مصفوفة وفرزها حسب التاريخ (الأحدث أولاً)
+            const sortedHistory = Object.values(history).sort((a, b) => b.date - a.date);
+
+            sortedHistory.forEach(item => {
+                const isEarned = item.type === 'earned';
+                const icon = isEarned ? '➕' : '➖';
+                const color = isEarned ? 'var(--success)' : 'var(--danger)';
+                const pointsText = isEarned ? `+${item.points}` : `-${item.points}`;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'history-item';
+                itemDiv.innerHTML = `
+                    <div class="history-icon" style="color: ${color};">${icon}</div>
+                    <div class="history-details">
+                        <p>${item.reason || (isEarned ? 'نقاط مكتسبة' : 'نقاط مستخدمة')}</p>
+                        <span>${new Date(item.date).toLocaleString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                    </div>
+                    <div class="history-points" style="color: ${color};">${pointsText} نقطة</div>
+                `;
+                container.appendChild(itemDiv);
+            });
+
+        } catch (e) {
+            container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">حدث خطأ أثناء تحميل سجل النقاط.</p>';
+            console.error("Error loading points history:", e);
+        }
+    }
+
+    function openPointsDetailModal() {
+        document.getElementById('modal-last-purchase-val').innerText = `${currentUserData.lastPurchaseValue || 0} ج.م`;
+        document.getElementById('modal-last-purchase-points').innerText = currentUserData.lastPurchasePoints || 0;
+        loadPointsHistory(); // Load history when modal is opened
+        document.getElementById('pointsDetailModal').style.display = 'flex';
+    }
+    function closePointsDetailModal() { document.getElementById('pointsDetailModal').style.display = 'none'; }
+
+    function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+    function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
+    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+    
+    async function openChatModal() {
+        document.getElementById('chatModal').style.display = 'flex';
+        await loadChatMessages();
+        
+        // Mark messages as read by customer
+        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
+        const res = await fetch(chatRef);
+        const messages = await res.json();
+        if (messages) {
+            for (const key in messages) {
+                if (messages[key].sender === 'admin' && !messages[key].readByCustomer) {
+                    await fetch(`${DB_URL}/chats/${currentLoggedPhone}/${key}/readByCustomer.json`, { method: 'PUT', body: 'true' });
+                }
+            }
+        }
+        checkUnreadMessages(); // Reset counter
+    }
+
+    function closeChatModal() {
+        document.getElementById('chatModal').style.display = 'none';
+    }
+
+    async function submitRegisterRequest() {
+        const name = document.getElementById('reg-name').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        const password = document.getElementById('reg-pass').value.trim();
+        const gender = document.getElementById('reg-gender').value;
+
+        if(!name || !phone || !password) {
+            return Swal.fire({ icon: 'warning', title: 'حقول ناقصة', text: '❌ برجاء ملء جميع الحقول المطلوبة لتقديم الطلب.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+        }
+
+        try {
+            const checkRes = await fetch(`${DB_URL}/customers/${phone}.json`);
+            const existingUser = await checkRes.json();
+            if(existingUser) {
+                return Swal.fire({ icon: 'info', title: 'مسجل بالفعل', text: '❌ هذا الرقم مسجل بالفعل في النظام! يمكنك تسجيل الدخول مباشرة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+            }
+
+            const payload = {
+                name: name,
+                password: password,
+                gender: gender,
+                status: "معلق", 
+                requestDate: Date.now()
+            };
+
+            const res = await fetch(`${DB_URL}/pending_requests/${phone}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                Swal.fire({ icon: 'success', title: 'تم تقديم الطلب', text: '⏳ تم تقديم طلب إنشاء حساب بنجاح! الرجاء انتظار مراجعة وتفعيل الحساب خلال الـ 24 ساعة القادمة.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+                closeRegisterModal();
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-phone').value = '';
+                document.getElementById('reg-pass').value = '';
+            }
+        } catch(e) {
+            Swal.fire({ icon: 'error', title: 'خطأ', text: 'خطأ أثناء إرسال الطلب: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
+        }
+    }   
+
+    async function cancelMyOrder(id) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "هل تريد حقاً إلغاء وحذف هذا الطلب نهائياً؟",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', 
+            cancelButtonColor: '#334155',  
+            confirmButtonText: 'نعم، احذفه',
+            cancelButtonText: 'تراجع',
+            background: '#1e293b',
+            color: '#f1f5f9'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await fetch(`${DB_URL}/medicine_orders/${id}.json`, { method: 'DELETE' });
+                    Swal.fire({
+                        title: 'تم الحذف!',
+                        text: '✅ تم إلغاء وحذف الطلب بنجاح.',
+                        icon: 'success',
+                        confirmButtonColor: '#38bdf8',
+                        background: '#1e293b',
+                        color: '#f1f5f9'
+                    });
+                    loadMyOrders(); 
+                } catch(e) {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: "حدث خطأ أثناء إلغاء الطلب: " + e.message,
+                        icon: 'error',
+                        confirmButtonColor: '#38bdf8',
+                        background: '#1e293b',
+                        color: '#f1f5f9'
+                    });
+                }
+            }
+        });
+    }
+
+    function openImageViewer(base64Src) {
+        if(!base64Src) {
+            Swal.fire({ icon: 'error', title: 'عفواً', text: 'الصورة غير متوفرة أو تالفة.', background: '#1e293b', color: '#f1f5f9' });
+            return;
+        }
+        document.getElementById('viewerTargetImage').src = base64Src;
+        document.getElementById('customImageViewer').style.display = 'flex';
+    }
+
+    function closeImageViewer() {
+        document.getElementById('customImageViewer').style.display = 'none';
+        document.getElementById('viewerTargetImage').src = '';
+    }
+
+    function showPermissionsGuide() {
+        Swal.fire({
+            title: '🔧 إرشادات تفعيل الأذونات',
+            html: `لضمان عمل جميع ميزات التطبيق مثل الإشعارات والميكروفون، قد تحتاج إلى تفعيل الأذونات يدوياً من إعدادات المتصفح.<br><br>
+                   عادةً، يمكنك العثور على هذه الإعدادات بالضغط على <b>رمز القفل (🔒)</b> بجوار عنوان الموقع في شريط المتصفح.`,
+            icon: 'info',
+            confirmButtonText: 'فهمت',
+            confirmButtonColor: '#38bdf8'
+        });
+    }
+
+    // --- Customer Chat Logic ---
+    async function checkUnreadMessages() {
+        if (!currentLoggedPhone) return;
+        const counter = document.getElementById('chat-counter');
+        try {
+            const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
+            const messages = await res.json();
+            if (!messages) {
+                counter.style.display = 'none';
+                return;
+            }
+            const unreadCount = Object.values(messages).filter(m => m.sender === 'admin' && !m.readByCustomer).length;
+            counter.innerText = unreadCount;
+            counter.style.display = unreadCount > 0 ? 'flex' : 'none';
+            // Gemini Suggestion: Update dashboard
+            document.getElementById('dash-unread-msgs').innerText = unreadCount;
+        } catch (e) {
+            console.error("Failed to check unread messages:", e);
+        }
+    }
+
+    async function loadChatMessages() {
+        if (!currentLoggedPhone) return;
+        const chatBody = document.getElementById('chat-body');
+        chatBody.innerHTML = '<p style="color:var(--text-dim); text-align:center;">جاري تحميل الرسائل...</p>';
+
+        const res = await fetch(`${DB_URL}/chats/${currentLoggedPhone}.json`);
+        const messages = await res.json();
+        chatBody.innerHTML = '';
+
+        if (messages) {
+            const sortedKeys = Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp);
+            sortedKeys.forEach(key => {
+                renderMessage(messages[key]);
+            });
+        }
+    }
+
+    function renderMessage(msg) {
+        const chatBody = document.getElementById('chat-body');
+        const bubble = document.createElement('div');
+        bubble.classList.add('msg-bubble', msg.sender);
+
+        let content = '';
+        if (msg.type === 'text') {
+            content = msg.content.replace(/\n/g, '<br>');
+        } else if (msg.type === 'image') {
+            content = `<img src="${msg.content}" alt="صورة" onclick="openImageViewer('${msg.content}')">`;
+        } else if (msg.type === 'voice') {
+            content = `<audio controls src="${msg.content}"></audio>`;
+        }
+
+        bubble.innerHTML = `
+            <div>${content}</div>
+            <div class="msg-timestamp">${new Date(msg.timestamp).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</div>
+        `;
+        chatBody.prepend(bubble);
+    }
+
+    async function sendChatMessage(type = 'text', content = null) {
+        const textInput = document.getElementById('chat-input');
+        const messageContent = content || textInput.value.trim();
+
+        if (!messageContent) return;
+
+        const message = {
+            sender: 'customer',
+            type: type,
+            content: messageContent,
+            timestamp: Date.now(),
+            readByAdmin: false
+        };
+
+        const chatRef = `${DB_URL}/chats/${currentLoggedPhone}.json`;
+        await fetch(chatRef, { method: 'POST', body: JSON.stringify(message) });
+
+        if (type === 'text') {
+            textInput.value = '';
+        }
+        loadChatMessages();
+    }
+
+    // Send on Enter
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
+
+    // Send image
+    document.getElementById('chat-image-input').onchange = () => {
+        const file = document.getElementById('chat-image-input').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => sendChatMessage('image', e.target.result);
+            reader.readAsDataURL(file);
+        }
+        document.getElementById('chat-image-input').value = '';
+    };
+</script>
+<script>
+    // Gemini Fix: Added voice recording logic for the customer
+    async function toggleRecording() {
+        const recordBtn = document.getElementById('record-btn');
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = "🎤";
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const reader = new FileReader();
+                    reader.onload = (e) => sendChatMessage('voice', e.target.result);
+                    reader.readAsDataURL(audioBlob);
+                    stream.getTracks().forEach(track => track.stop()); // Stop mic access
+                };
+
+                mediaRecorder.start();
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = "🛑";
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'خطأ في الوصول للميكروفون', text: 'لم نتمكن من الوصول للميكروفون. يرجى التأكد من إعطاء الإذن للموقع من إعدادات المتصفح.', background: '#1e293b', color: '#f1f5f9' });
+            }
+        }
+    }
+</script>
+<script>
+    // Settings Modal Logic
+    function openSettingsModal() {
+        if (!currentUserData) return;
+        document.getElementById('settings-name').value = currentUserData.name || '';
+        document.getElementById('settings-gender').value = currentUserData.gender || 'ذكر';
+        document.getElementById('settings-pass').value = ''; // Clear password field
+        document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    async function updateUserSettings() {
+        const newName = document.getElementById('settings-name').value.trim();
+        const newPass = document.getElementById('settings-pass').value.trim();
+        const newGender = document.getElementById('settings-gender').value;
+
+        if (!newName) {
+            return Swal.fire({ icon: 'warning', title: 'خطأ', text: 'لا يمكن ترك حقل الاسم فارغاً.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+        }
+
+        const updatePayload = {
+            name: newName,
+            gender: newGender,
+        };
+
+        if (newPass) {
+            updatePayload.password = newPass;
+        }
+
+        try {
+            const res = await fetch(`${DB_URL}/customers/${currentLoggedPhone}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify(updatePayload)
+            });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'تم التحديث', text: 'تم حفظ تعديلاتك بنجاح.', background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#38bdf8' });
+                // Update local data
+                currentUserData.name = newName;
+                currentUserData.gender = newGender;
+                if(newPass) { currentUserData.password = newPass; localStorage.setItem('customer_pass', newPass); }
+                document.getElementById('ui-holder-name').innerText = newName;
+                closeSettingsModal();
+            } else {
+                throw new Error('Failed to update data.');
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'خطأ', text: 'فشل تحديث البيانات: ' + e.message, background: '#1e293b', color: '#f1f5f9' });
+        }
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+        // Save theme preference to Firebase
+        fetch(`${DB_URL}/customers/${currentLoggedPhone}.json`, {
+            method: 'PATCH', body: JSON.stringify({ theme: currentTheme })
+        });
+    }
+</script>
+
+<div id="customImageViewer" class="image-viewer-modal">
+    <button class="image-viewer-close" onclick="closeImageViewer()">❌ إغلاق العرض</button>
+    <img id="viewerTargetImage" class="image-viewer-content" src="" alt="الروشتة">
+</div>
+
+<script>
+    // --- Store & Cart Logic ---
+    function updateCartCounter(cart) {
+        // Gemini Final Review Fix: The cart object is now passed directly from the real-time listener
+        cart = cart || {}; // Ensure cart is an object if it's null
+        const count = Object.keys(cart).length;
+        
+        const counter = document.getElementById('cart-counter');
+        counter.innerText = count;
+        counter.style.display = count > 0 ? 'flex' : 'none';
+    }
+</script>
+<script>
+    // Gemini Fix: Function to show browser notifications for the customer
+    function showBrowserNotification(title, body) {
+        if (!("Notification" in window)) {
+            console.log("This browser does not support desktop notification");
+        } else if (Notification.permission === "granted") {
+            new Notification(title, { body: body, icon: 'https://i.imgur.com/rgy8E8S.png' });
+            const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3');
+            audio.play().catch(e => console.log("Audio play blocked"));
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === "granted") { new Notification(title, { body: body, icon: 'https://i.imgur.com/rgy8E8S.png' }); }
+            });
+        }
+    }
+</script>
+<script>
+    // Gemini Suggestion: Dropdown Menu Logic
+    function toggleMainMenu() {
+        document.getElementById("main-menu-dropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropdown-btn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) { dropdowns[i].classList.remove('show'); }
+            }
+        }
+    }
+</script>
+<script>
+    // Gemini Suggestion: Share Loyalty Card Logic
+    async function shareLoyaltyCard() {
+        const shareData = {
+            title: 'برنامج ولاء صيدلية جمال محمد علي',
+            text: 'انضم الآن لبرنامج ولاء صيدلية جمال محمد علي واحصل على خصومات وعروض حصرية!',
+            url: window.location.href // Shares the URL of the current page
+        };
+
+        try {
+            await navigator.share(shareData);
+            console.log('Card shared successfully');
+        } catch (err) {
+            console.error('Share failed:', err);
+            Swal.fire({ icon: 'info', title: 'المشاركة غير مدعومة', text: 'متصفحك لا يدعم خاصية المشاركة المباشرة. يمكنك نسخ رابط التطبيق ومشاركته يدوياً.', background: '#1e293b', color: '#f1f5f9' });
+        }
+    }
+</script>
+
+</body>
+</html>
