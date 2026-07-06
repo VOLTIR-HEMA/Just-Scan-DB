@@ -716,13 +716,24 @@
             let historyEntry = null;
 
             // 1. حساب النقاط المكتسبة من فاتورة جديدة
+            const POINTS_CAP = 500;
             if (invoiceValue !== "") {
-                const earnedPoints = parseInt(invoiceValue) || 0;
-                if (earnedPoints > 0) {
-                    pointsChange += earnedPoints;
-                    payload.lastPurchaseValue = earnedPoints;
-                    payload.lastPurchasePoints = earnedPoints;
-                    historyEntry = { date: Date.now(), points: earnedPoints, type: 'earned', reason: `فاتورة بقيمة ${earnedPoints} ج.م` };
+                let pointsToAdd = parseInt(invoiceValue) || 0;
+                if (pointsToAdd > 0) {
+                    const currentPoints = payload.points;
+                    if (currentPoints >= POINTS_CAP) {
+                        Swal.fire('تنبيه', `هذا العميل لديه بالفعل ${currentPoints} نقطة وقد وصل للحد الأقصى (500). لا يمكن إضافة المزيد من النقاط.`, 'warning');
+                        pointsToAdd = 0; // لا تضيف أي نقاط
+                    } else if (currentPoints + pointsToAdd > POINTS_CAP) {
+                        const actualPointsAdded = POINTS_CAP - currentPoints;
+                        Swal.fire('تنبيه الحد الأقصى', `تمت إضافة ${actualPointsAdded} نقطة فقط ليصل العميل للحد الأقصى (500). تم تجاهل باقي النقاط.`, 'info');
+                        pointsToAdd = actualPointsAdded;
+                    }
+
+                    pointsChange += pointsToAdd;
+                    payload.lastPurchaseValue = invoiceValue; // قيمة الفاتورة الأصلية
+                    payload.lastPurchasePoints = pointsToAdd; // النقاط المضافة فعلياً
+                    historyEntry = { date: Date.now(), points: pointsToAdd, type: 'earned', reason: `فاتورة بقيمة ${invoiceValue} ج.م` };
                 }
             }
 
