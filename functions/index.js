@@ -40,8 +40,10 @@ exports.sendBroadcastNotification = functions.database.ref('/broadcast_requests/
         console.log(`Found ${tokens.length} tokens. Preparing to send notification.`);
 
         // 3. تجهيز رسالة الإشعار
+        // نستخدم data بدلاً من notification لضمان التحكم الكامل في الإشعار
+        // ولكي يعمل onBackgroundMessage بشكل صحيح
         const message = {
-            notification: {
+            data: {
                 title: title,
                 body: body,
             },
@@ -79,7 +81,8 @@ async function notifyAdmins(payload) {
     if (tokens.length > 0) {
         console.log(`Sending notification to ${tokens.length} admin devices.`);
         const message = {
-            notification: payload,
+            data: payload, // استخدام data لضمان وصول الإشعار في الخلفية مع صوت
+            notification: payload, // استخدام notification ليظهر الإشعار عندما يكون التطبيق في المقدمة
             tokens: tokens,
         };
         await admin.messaging().sendMulticast(message);
