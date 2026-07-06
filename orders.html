@@ -302,7 +302,9 @@
                                 <span style="color:var(--success); font-size:0.85em;">🛒 طلب متجر | ${new Date(ord.date).toLocaleDateString('ar-EG')}</span>
                                 <button onclick="cancelMyOrder('${id}', 'cart_orders')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85em; font-weight:bold;">❌ إلغاء</button>
                             </div>
-                            <div style="margin:8px 0; color:var(--text-main); font-weight:500;">إجمالي الطلب: ${ord.totalPrice ? ord.totalPrice.toFixed(2) : '0.00'} ج.م</div>
+                            <div style="margin:8px 0; color:var(--text-main); font-weight:500;">
+                                إجمالي الطلب: ${ord.totalPrice ? Number(ord.totalPrice).toFixed(2) : '0.00'} ج.م
+                            </div>
                             <div class="status-badge ${statusClass}" style="margin-top:10px;">الحالة: ${ord.status || 'قيد المراجعة'}</div>
                         `;
                     }
