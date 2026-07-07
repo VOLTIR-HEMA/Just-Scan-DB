@@ -8,52 +8,114 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #38bdf8;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f7f6;
-            color: #333;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0);
+            background-size: 25px 25px;
+            color: var(--text-main);
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background-color: #fff;
+            background-color: var(--card-bg);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 40px rgba(56, 189, 248, 0.1);
+            animation: fadeIn 0.8s ease-out;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .logo {
             width: 80px;
             height: 80px;
             margin-bottom: 20px;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            animation: pulse 2s infinite;
         }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         h1 {
-            color: #0056b3;
+            color: var(--primary);
             font-weight: 700;
+            font-size: 2em;
         }
+
         h2 {
-            color: #007bff;
-            border-bottom: 2px solid #eee;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
             margin-top: 30px;
+            font-size: 1.5em;
         }
+
         p, ul {
             font-size: 16px;
             line-height: 1.8;
             text-align: right;
+            color: var(--text-dim);
         }
+
         ul {
-            list-style-position: inside;
+            list-style-type: none;
             padding-right: 0;
         }
+        ul li {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right center;
+            padding-right: 30px;
+            margin-bottom: 10px;
+            animation: slideIn 0.5s forwards;
+            opacity: 0;
+        }
+
+        /* Staggered animation for list items */
+        ul li:nth-child(1) { animation-delay: 0.2s; }
+        ul li:nth-child(2) { animation-delay: 0.3s; }
+        ul li:nth-child(3) { animation-delay: 0.4s; }
+        ul li:nth-child(4) { animation-delay: 0.5s; }
+        ul li:nth-child(5) { animation-delay: 0.6s; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         .buttons {
             margin-top: 40px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
+
         .btn {
             display: block;
             padding: 15px 20px;
@@ -64,40 +126,53 @@
             font-family: 'Cairo', sans-serif;
             cursor: pointer;
             text-decoration: none;
-            color: #fff;
-            transition: background-color 0.3s, transform 0.2s;
+            color: var(--bg-dark);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+
         .btn-download {
-            background-color: #28a745; /* أخضر */
+            background-color: var(--success);
         }
+
         .btn-download:hover {
-            background-color: #218838;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
         }
+
         .btn-share {
-            background-color: #17a2b8; /* سماوي */
+            background-color: var(--primary);
         }
+
         .btn-share:hover {
-            background-color: #138496;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
         }
+
         .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #333;
+            background-color: var(--primary);
             color: #fff;
             padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s, visibility 0.5s;
+            transition: all 0.5s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
+
         .toast.show {
             opacity: 1;
             visibility: visible;
+            transform: translate(-50%, -10px);
         }
     </style>
 </head>
@@ -105,20 +180,20 @@
 
     <div class="container">
         <img src="https://i.imgur.com/rgy8E8S.png" alt="شعار التطبيق" class="logo">
-        <h1>انضم إلى تطبيقنا واحصل على أفضل خدمة</h1>
-        <p>تطبيقنا هو مساعدك الأول لإدارة طلباتك بسهولة وسرعة. انضم الآن واستمتع بالمميزات الرائعة.</p>
+        <h1>تطبيق صيدليتي</h1>
+        <p>مساعدك الأول لإدارة طلباتك، متابعة نقاطك، والاستفادة من العروض الحصرية بسهولة وسرعة.</p>
 
         <h2>لماذا تستخدم تطبيقنا؟</h2>
         <ul>
             <li>سهولة طلب الأدوية والمنتجات من المتجر.</li>
             <li>متابعة حالة طلباتك أولاً بأول.</li>
-            <li>الحصول على نقاط ولاء مع كل عملية شراء.</li>
+            <li>الحصول على نقاط وخصم مالي في كل عملية شراء من الصيدلية</li>
             <li>عروض وخصومات حصرية لمستخدمي التطبيق.</li>
             <li>تواصل مباشر وسريع مع الصيدلية عبر المحادثات.</li>
         </ul>
 
         <div class="buttons">
-            <a href="YOUR_APP_DOWNLOAD_LINK" class="btn btn-download">📱 تحميل أحدث نسخة من التطبيق</a>
+            <a href="https://github.com/VOLTIR-HEMA/Just-Scan-DB/releases/download/app/pharmacy-1.2.apk" class="btn btn-download">📱 تحميل أحدث نسخة من التطبيق</a>
             <button id="shareButton" class="btn btn-share">🔗 مشاركة التطبيق مع صديق</button>
         </div>
     </div>
@@ -131,8 +206,8 @@
 
         shareButton.addEventListener('click', async () => {
             const shareData = {
-                title: 'اكتشف هذا التطبيق الرائع!',
-                text: 'أستخدم هذا التطبيق لإدارة طلباتي من الصيدلية بسهولة، أنصحك بتجربته!',
+                title: 'تطبيق صيدليتي من انشاء ابراهيم زهيري عبدالموجود',
+                text: 'استخدم هذا التطبيق لتحصل على نقاط وخصم مالي في كل عملية شراء',
                 url: window.location.href
             };
 
@@ -140,9 +215,8 @@
             if (navigator.share) {
                 try {
                     await navigator.share(shareData);
-                    console.log('تمت المشاركة بنجاح');
                 } catch (err) {
-                    console.error('فشلت المشاركة:', err);
+                    // لا تفعل شيئاً إذا ألغى المستخدم المشاركة
                 }
             } else {
                 // إذا لم تكن مدعومة، يتم نسخ الرابط إلى الحافظة
@@ -150,7 +224,7 @@
                     toast.classList.add('show');
                     setTimeout(() => { toast.classList.remove('show'); }, 3000);
                 }).catch(err => {
-                    console.error('فشل نسخ الرابط:', err);
+                    alert('فشل نسخ الرابط. يرجى نسخه يدوياً.');
                 });
             }
         });
