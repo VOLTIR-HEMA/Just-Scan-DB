@@ -376,8 +376,7 @@
             <h4 style="color: var(--text-dim); font-size: 0.9em; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">إعدادات الواجهة</h4>
             <button class="btn-secondary" onclick="toggleTheme()">🎨 تغيير الثيم (ليلي/نهاري)</button>
             <button class="btn-secondary" style="margin-top: 10px; background-color: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #f59e0b;" onclick="requestNotificationPermissionManually()">🔔 تفعيل الإشعارات يدوياً</button>
-            <button class="btn-secondary" style="margin-top: 10px;" onclick="showPermissionsGuide()">🔧 إرشادات أذونات المتصفح</button>
-
+            <button id="update-app-btn" class="btn-secondary" style="margin-top: 10px; display: none; background-color: rgba(56, 189, 248, 0.1); border-color: var(--primary); color: var(--primary);" onclick="downloadLatestUpdate()">📱 تنزيل آخر تحديث للتطبيق</button>
             <button class="btn-secondary" style="margin-top: 20px; color: #ef4444; border-color: #ef4444;" onclick="logoutCustomer()">🚪 تسجيل الخروج</button>
         </div>
     </div>
@@ -437,6 +436,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         checkAnnouncement();
+        checkAppUpdate(); // Gemini Final Fix: استدعاء دالة التحقق من التحديث هنا لتعمل دائماً عند فتح التطبيق
         const loader = document.getElementById('loader');
         const loginUI = document.getElementById('login-ui');
 
@@ -1158,22 +1158,71 @@
 <script>
     // Gemini Suggestion: Share Loyalty Card Logic
     async function shareLoyaltyCard() {
-        // ! هام: قم باستبدال هذا الرابط بالرابط المباشر لملف APK الخاص بك على GitHub
-        const apkUrl = 'https://github.com/VOLTIR-HEMA/Just-Scan-DB/releases/download/app/pharmacy-1.2.apk';
+        // ! هام جداً: قم باستبدال هذا الرابط برابط صفحة المشاركة (share.html) بعد رفعها على GitHub
+        const sharePageUrl = 'https://YOUR_USERNAME.github.io/YOUR_REPOSITORY/share.html';
 
-        const shareData = {
-            title: 'برنامج ولاء صيدلية جمال محمد علي',
-            text: `حمل تطبيق صيدلية جمال محمد علي الآن واحصل على خصومات وعروض حصرية!`,
-            url: apkUrl // استخدام رابط التطبيق مباشرة
-        };
+        // بما أن خاصية المشاركة المباشرة لا تعمل داخل الويب فيو،
+        // سنقوم بفتح رابط صفحة المشاركة مباشرة في المتصفح الافتراضي للجهاز.
+        // هذا هو السلوك الأفضل لضمان عملها على كل الأجهزة.
+        window.open(sharePageUrl, '_system');
+        
+        // ملاحظة: إذا كنت تستخدم Cordova أو Capacitor، فإن '_system' يفتح الرابط في المتصفح الخارجي.
+        // إذا كان الويب فيو الخاص بك لا يدعم هذا، يمكنك استخدام '_blank' لفتحه في نافذة جديدة.
+    }
+</script>
 
+<script>
+    // --- Gemini: App Update Logic ---
+    let latestUpdateInfo = null;
+    
+    // Gemini Final Fix: إعادة كتابة الدالة لتكون بسيطة وفعالة مثل نظام الرسالة الافتتاحية
+    async function checkAppUpdate() {
         try {
-            await navigator.share(shareData);
-            console.log('Card shared successfully');
-        } catch (err) {
-            console.error('Share failed:', err);
-            Swal.fire({ icon: 'info', title: 'المشاركة غير مدعومة', text: 'متصفحك لا يدعم خاصية المشاركة المباشرة. يمكنك نسخ رابط التطبيق ومشاركته يدوياً.', background: '#1e293b', color: '#f1f5f9' });
-        }
+            const res = await fetch(`${DB_URL}/app_update.json`);
+            const updateData = await res.json();
+
+            // 1. التحقق من وجود بيانات تحديث منشورة
+            if (updateData && updateData.version && updateData.url) {
+                latestUpdateInfo = updateData; // حفظ معلومات التحديث للاستخدام لاحقاً
+                
+                // 2. إظهار زر التحديث في قائمة الإعدادات طالما هناك تحديث منشور
+                document.getElementById('update-app-btn').style.display = 'block';
+
+                // 3. مقارنة إصدار التحديث المنشور مع آخر إصدار شاهده المستخدم
+                const lastUpdateSeen = localStorage.getItem('last_update_seen');
+                if (lastUpdateSeen !== updateData.version.toString()) {
+                    // 4. إذا كان التحديث جديداً على المستخدم، أظهر النافذة المنبثقة
+                    Swal.fire({
+                        title: '🚀 تحديث جديد متوفر!',
+                        text: updateData.notes || 'يتوفر إصدار جديد من التطبيق بميزات وتحسينات جديدة. نوصي بالتحديث الآن!',
+                        icon: 'info',
+                        confirmButtonText: 'تنزيل التحديث',
+                        showDenyButton: true,
+                        denyButtonText: 'لاحقاً',
+                        confirmButtonColor: '#28a745', // أخضر
+                        background: '#1e293b',
+                        color: '#f1f5f9'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // إذا ضغط "تنزيل"، قم بالتحميل وسجل أن هذا الإصدار تم التعامل معه
+                            downloadLatestUpdate();
+                        } else if (result.isDenied) {
+                            // إذا ضغط "لاحقاً"، سجل أن هذا الإصدار تم التعامل معه لمنع ظهوره مرة أخرى
+                            localStorage.setItem('last_update_seen', updateData.version);
+                        }
+                    });
+                }
+            }
+        } catch (e) { console.error("Error checking for app updates:", e); }
+    }
+
+    function downloadLatestUpdate() {
+        if (!latestUpdateInfo) return;
+        window.open(latestUpdateInfo.url, '_system');
+        // تسجيل أن المستخدم ضغط على زر التنزيل لمنع ظهور النافذة مرة أخرى لنفس الإصدار
+        localStorage.setItem('last_update_seen', latestUpdateInfo.version);
+        Swal.fire('جاري التنزيل', 'سيتم تنزيل التحديث في الخلفية. بعد اكتمال التنزيل، قم بتثبيته يدوياً.', 'success');
+        Swal.close();
     }
 </script>
 
