@@ -359,6 +359,13 @@
             </div>
             <button class="btn" style="background: #f59e0b;" onclick="sendBroadcastNotification()">🚀 إرسال الإشعار للجميع الآن</button>
         </div>
+
+        <!-- Gemini: كارت نشر تحديثات التطبيق -->
+        <div id="update-app-card" class="section-card">
+            <h2>🚀 نشر تحديث جديد للتطبيق</h2>
+            <p style="color: var(--text-dim); font-size: 0.9em;">إرسال إشعار لجميع المستخدمين بوجود إصدار جديد من التطبيق لتحميله.</p>
+            <button class="btn" style="background: #17a2b8;" onclick="openUpdateModal()">📤 فتح نافذة نشر التحديث</button>
+        </div>
             </div>
         </section>
 
@@ -515,6 +522,26 @@
         <div id="points-history-container" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
             <p style="color: var(--text-dim); text-align: center; font-size: 0.9em;">جاري تحميل سجل النقاط...</p>
         </div>
+    </div>
+</div>
+
+<!-- Gemini: نافذة نشر التحديثات المنبثقة -->
+<div id="updateAppModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:100; align-items: center; justify-content: center; padding: 15px;">
+    <div style="background: #1e293b; padding: 25px; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid #334155;">
+        <h3 style="margin-top: 0; color: #38bdf8; display: flex; justify-content: space-between; align-items: center;">
+            <span>نشر تحديث جديد</span>
+            <button onclick="closeUpdateModal()" style="background:transparent; border:none; color: #94a3b8; font-size: 1.5em; cursor:pointer;">&times;</button>
+        </h3>
+        
+        <p style="color: #94a3b8; font-size: 0.9em;">أدخل رابط ملف APK الجديد. يمكنك الحصول عليه من صفحة Releases في مشروعك على GitHub.</p>
+        
+        <label for="update-url" style="display: block; margin-bottom: 5px; color: #f1f5f9;">رابط التحديث (APK URL):</label>
+        <input type="url" id="update-url" placeholder="https://github.com/.../app-release.apk" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1em; margin-bottom: 15px;">
+        
+        <label for="update-notes" style="display: block; margin-bottom: 5px; color: #f1f5f9;">ملاحظات الإصدار (اختياري):</label>
+        <textarea id="update-notes" placeholder="مثال: تم إصلاح مشكلة تعليق التطبيق، إضافة ميزة جديدة..." style="width: 100%; height: 70px; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1em; margin-bottom: 20px; resize: vertical;"></textarea>
+
+        <button style="width: 100%; padding: 15px; background: #28a745; border: none; border-radius: 8px; color: #fff; font-weight: bold; font-size: 1.1em; cursor: pointer;" onclick="publishAppUpdate()">🚀 نشر الآن لكل المستخدمين</button>
     </div>
 </div>
 
@@ -1681,6 +1708,42 @@
         }
     }
 
+    // --- Gemini: دوال نافذة نشر التحديث ---
+    function openUpdateModal() {
+        document.getElementById('updateAppModal').style.display = 'flex';
+    }
+
+    function closeUpdateModal() {
+        document.getElementById('updateAppModal').style.display = 'none';
+    }
+
+    async function publishAppUpdate() {
+        const updateUrl = document.getElementById('update-url').value.trim();
+        const updateNotes = document.getElementById('update-notes').value.trim();
+
+        if (!updateUrl) {
+            return Swal.fire('خطأ', 'الرجاء إدخال رابط التحديث أولاً.', 'error');
+        }
+
+        // استخدام تاريخ النشر كرقم إصدار فريد
+        const updateVersion = Date.now(); 
+
+        const payload = {
+            version: updateVersion,
+            url: updateUrl,
+            notes: updateNotes
+        };
+
+        try {
+            await fetch(`${DB_URL}/app_update.json`, { method: 'PUT', body: JSON.stringify(payload) });
+            Swal.fire('تم النشر بنجاح!', 'سيتم إعلام جميع المستخدمين بوجود تحديث جديد عند فتحهم للتطبيق.', 'success');
+            closeUpdateModal();
+            document.getElementById('update-url').value = '';
+            document.getElementById('update-notes').value = '';
+        } catch (e) {
+            Swal.fire('فشل النشر', 'حدث خطأ أثناء محاولة نشر التحديث: ' + e.message, 'error');
+        }
+    }
     // --- Gemini Fix: True Real-time Listeners ---
     function initializeApp() {
         // تهيئة أولية للبيانات عند تحميل الصفحة
