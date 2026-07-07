@@ -1158,16 +1158,9 @@
 <script>
     // Gemini Suggestion: Share Loyalty Card Logic
     async function shareLoyaltyCard() {
-        // ! هام جداً: قم باستبدال هذا الرابط برابط صفحة المشاركة (share.html) بعد رفعها على GitHub
-        const sharePageUrl = 'https://voltir-hema.github.io/Just-Scan-DB/share.html';
-
-        // بما أن خاصية المشاركة المباشرة لا تعمل داخل الويب فيو،
-        // سنقوم بفتح رابط صفحة المشاركة مباشرة في المتصفح الافتراضي للجهاز.
-        // هذا هو السلوك الأفضل لضمان عملها على كل الأجهزة.
-        window.open(sharePageUrl, '_system');
-        
-        // ملاحظة: إذا كنت تستخدم Cordova أو Capacitor، فإن '_system' يفتح الرابط في المتصفح الخارجي.
-        // إذا كان الويب فيو الخاص بك لا يدعم هذا، يمكنك استخدام '_blank' لفتحه في نافذة جديدة.
+        // Gemini Final Fix: تغيير السلوك ليقوم بالانتقال الداخلي للصفحة
+        // بدلاً من محاولة فتح تبويب جديد، مما يحل المشكلة في الويب فيو.
+        window.location.href = 'share.html';
     }
 </script>
 
